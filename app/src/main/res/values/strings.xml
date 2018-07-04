@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">twitter-project</string>
+    <string name="back">Назад</string>
+    <string name="delete">Удалить</string>
+    <string name="edit">Редактировать</string>
+    <string name="list">Список</string>
+
+    <string name="add">Добавить</string>
+    <string name="profile">Профиль</string>
+
+    <string name="add_text">Сообщение:</string>
+    <string name="msg_save">Сохранить</string>
+    <string name="msg_add">Добавить</string>
+
+</resources>
