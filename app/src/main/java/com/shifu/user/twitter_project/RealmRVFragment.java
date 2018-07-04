@@ -55,35 +55,40 @@ public class RealmRVFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
 
-//        swipeController = new SwipeController(getActivity(), new SwipeControllerActions() {
-//            @Override
-//            public void onDelete(final int position) {
-//                //Log.d("Deleted:", Long.toString(mAdapter.getItem(position).getID()));
-//                new RealmController(getContext()).removeItemById(mAdapter.getItem(position).getDate());
-//                mAdapter.notifyDataSetChanged();
-//            }
-//
-//            @Override
-//            public void onEdit(final int position) {
-//                Intent intent = new Intent(getActivity(), AddActivity.class);
-//                Messages updateRow = realm.where(Messages.class).equalTo(FIELD_ID, mAdapter.getItem(position).getDate()).findFirst();
-//                intent.putExtra("text", updateRow.getText());
-//                intent.putExtra("position", position);
-//                startActivityForResult(intent, 1);
-//            }
-//        });
-//
-//
-//        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
-//        itemTouchhelper.attachToRecyclerView(mRecyclerView);
-//
-//        mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
-//            @Override
-//            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
-//                swipeController.onDraw(c);
-//            }
-//        });
+        swipeController = new SwipeController(getActivity(), new SwipeControllerActions() {
+            @Override
+            public void onDelete(final int position) {
+                //Log.d("Deleted:", Long.toString(mAdapter.getItem(position).getID()));
+                new RealmController(getContext()).removeItemById(mAdapter.getItem(position).getDate());
+                mAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onEdit(final int position) {
+                Intent intent = new Intent(getActivity(), AddActivity.class);
+                Messages updateRow = realm.where(Messages.class).equalTo(FIELD_ID, mAdapter.getItem(position).getDate()).findFirst();
+                intent.putExtra("text", updateRow.getText());
+                intent.putExtra("position", position);
+                startActivityForResult(intent, 1);
+            }
+        });
+
+
+        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
+        itemTouchhelper.attachToRecyclerView(mRecyclerView);
+
+        mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+                swipeController.onDraw(c);
+            }
+        });
         return rootView;
+    }
+
+
+    public SwipeController getSwipeController() {
+        return swipeController;
     }
 
     public void addItem(String text) {
