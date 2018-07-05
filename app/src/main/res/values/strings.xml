@@ -12,4 +12,6 @@
     <string name="msg_save">Сохранить</string>
     <string name="msg_add">Добавить</string>
 
+    <string name="article_entry">Заголовок: "%1$s"\nСсылка: %2$s</string>
+
 </resources>

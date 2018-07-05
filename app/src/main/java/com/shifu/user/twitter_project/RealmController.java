@@ -15,13 +15,7 @@ public class RealmController {
 
     public RealmController(Context context) {
         Realm.init(context);
-
-        RealmConfiguration config = new RealmConfiguration.Builder()
-                .deleteRealmIfMigrationNeeded()
-                .build();
-
-        realm.setDefaultConfiguration(config);
-        realm = Realm.getInstance(config);
+        realm = Realm.getDefaultInstance();
 
         this.context = context;
     }
@@ -32,20 +26,17 @@ public class RealmController {
         realm.commitTransaction();
     }
 
-//    public void addInfo(final Countries data) {
-//        realm.beginTransaction();
-//        for (com.shifu.user.project1.CountriesResponse obj : data.getResponse()) {
-//            Messages item = Messages.create(realm);
-//                    String country_content = context.getResources().getString(R.string.country_entry,
-//                            obj.getRegion(),
-//                            obj.getSubRegion(),
-//                            obj.getNativeLanguage(),
-//                            obj.getCurrencyName());
-//                    item.setTitle(obj.getName());
-//                    item.setContent(country_content);
-//        }
-//        realm.commitTransaction();
-//    }
+    public void addInfo(final JsonList data) {
+        realm.beginTransaction();
+        for (JsonItem obj : data.getJsonItems()) {
+            Messages item = Messages.create(realm);
+                    String content = context.getResources().getString(R.string.article_entry,
+                            obj.getTitle(),
+                            obj.getUrl());
+                    item.setText(content);
+        }
+        realm.commitTransaction();
+    }
 
     public void addInfo(final String text) {
         if (text == null || text.equals("")) return;
