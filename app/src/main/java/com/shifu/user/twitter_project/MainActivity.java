@@ -6,15 +6,27 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.w3c.dom.Comment;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
 
 import retrofit2.Call;
 import retrofit2.Response;
@@ -44,40 +56,21 @@ public class MainActivity extends AppCompatActivity {
 
         mAdapter =  new RealmRVAdapter(realm.where(Messages.class).findAll().sort("date"));
 
-        context = this;
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference myRef = database.getReference("items");
 
-        Gson gson = new GsonBuilder()
-                .setLenient()
-                .create();
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://vedmak.wikia.com")
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build();
-
-        JsonApi jsonApi = retrofit.create(JsonApi.class);
-        jsonApi.loadTitles("Popular").enqueue(new Callback<JsonList>() {
-
+        // Read from the database
+        //
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onResponse(Call<JsonList> call, Response<JsonList> response) {
-                if (response.isSuccessful()) {
-                    //Log.d("REST Response:", response.body().toString());
-                    new RealmController(context).addInfo(response.body());
-                    mAdapter.notifyDataSetChanged();
-
-                    realmRVFragment = new RealmRVFragment();
-                    getSupportFragmentManager()
-                            .beginTransaction()
-                            .add(R.id.container, realmRVFragment, "START")
-                            .commit();
-                } else {
-                    Log.e("REST error", response.errorBody().toString());
-                }
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                new RealmController(context).addInfo(dataSnapshot);
+                mAdapter.setData(realm.where(Messages.class).findAll().sort("date"));
             }
 
             @Override
-            public void onFailure(Call<JsonList> call, Throwable t) {
-                t.printStackTrace();
+            public void onCancelled(DatabaseError error) {
+                Log.w("FbDB", "Failed to read value.", error.toException());
             }
         });
 
@@ -91,6 +84,45 @@ public class MainActivity extends AppCompatActivity {
                 .add(R.id.container, realmRVFragment, "START")
                 .commit();
 
+//  Загрузка данных через api wikia.com с помощью retrofit lib
+
+//        context = this;
+//
+//        Gson gson = new GsonBuilder()
+//                .setLenient()
+//                .create();
+//
+//        Retrofit retrofit = new Retrofit.Builder()
+//                .baseUrl("http://vedmak.wikia.com")
+//                .addConverterFactory(GsonConverterFactory.create(gson))
+//                .build();
+//
+//        JsonApi jsonApi = retrofit.create(JsonApi.class);
+//        jsonApi.loadTitles("Popular").enqueue(new Callback<JsonList>() {
+//
+//            @Override
+//            public void onResponse(Call<JsonList> call, Response<JsonList> response) {
+//                if (response.isSuccessful()) {
+//                    //Log.d("REST Response:", response.body().toString());
+//                    new RealmController(context).addInfo(response.body());
+//                    mAdapter.notifyDataSetChanged();
+//
+//                    realmRVFragment = new RealmRVFragment();
+//                    getSupportFragmentManager()
+//                            .beginTransaction()
+//                            .add(R.id.container, realmRVFragment, "START")
+//                            .commit();
+//                } else {
+//                    Log.e("REST error", response.errorBody().toString());
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<JsonList> call, Throwable t) {
+//                t.printStackTrace();
+//            }
+//        });
+//
     }
 
     @Override

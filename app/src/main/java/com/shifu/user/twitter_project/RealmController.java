@@ -1,6 +1,11 @@
 package com.shifu.user.twitter_project;
 
 import android.content.Context;
+import android.util.Log;
+
+import com.google.firebase.database.DataSnapshot;
+
+import java.util.HashMap;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -37,6 +42,17 @@ public class RealmController {
         }
         realm.commitTransaction();
     }
+
+    public void addInfo(final DataSnapshot data) {
+        realm.beginTransaction();
+        for (DataSnapshot postSnapshot : data.getChildren()) {
+            HashMap<String, Object> item = (HashMap<String, Object>) postSnapshot.getValue();
+            Messages obj = Messages.create(realm, (Long) item.get("date"));
+            obj.setText((String)item.get("text"));
+        }
+        realm.commitTransaction();
+    }
+
 
     public void addInfo(final String text) {
         if (text == null || text.equals("")) return;

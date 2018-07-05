@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
+apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdkVersion 27
@@ -36,6 +37,13 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.5'
 
     implementation 'org.apache.commons:commons-lang3:3.7'
+
+    implementation 'com.google.firebase:firebase-core:16.0.1'
+    implementation 'com.google.firebase:firebase-database:16.0.1'
+
+//    implementation 'com.google.firebase:firebase-admin:6.2.0'
+//    implementation 'com.google.auto.value:auto-value:1.5.2'
+//    annotationProcessor 'com.google.auto.value:auto-value:1.5.2'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

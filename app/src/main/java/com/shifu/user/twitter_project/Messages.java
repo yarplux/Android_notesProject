@@ -44,6 +44,28 @@ public class Messages  extends RealmObject {
         return item;
     }
 
+    static Messages create(Realm realm, Long newdate) {
+        MessagesList parent;
+
+        if (realm.where(MessagesList.class).findFirst() == null) {
+            parent = new MessagesList();
+        } else {
+            parent = realm.where(MessagesList.class).findFirst();
+        }
+
+        RealmList<Messages> items = parent.getItemList();
+
+        Messages item;
+
+        long index = newdate;
+
+        while (realm.where(Messages.class).equalTo(FIELD_ID, ++index).findFirst() != null) {}
+        item = realm.createObject(Messages.class, index);
+        items.add(item);
+        return item;
+    }
+
+
     static void delete(Realm realm, long id) {
         Messages item = realm.where(Messages.class).equalTo(FIELD_ID, id).findFirst();
         if (item != null) {
