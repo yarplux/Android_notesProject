@@ -6,6 +6,7 @@ import android.util.Log;
 import com.google.firebase.database.DataSnapshot;
 
 import java.util.HashMap;
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -31,27 +32,24 @@ public class RealmController {
         realm.commitTransaction();
     }
 
-    public void addInfo(final JsonList data) {
+    public void addInfo(final List<JsonItem> data) {
         realm.beginTransaction();
-        for (JsonItem obj : data.getJsonItems()) {
-            Messages item = Messages.create(realm);
-                    String content = context.getResources().getString(R.string.article_entry,
-                            obj.getTitle(),
-                            obj.getUrl());
-                    item.setText(content);
+        for (JsonItem obj : data) {
+            Messages item = Messages.create(realm, obj.getDate());
+            item.setText(obj.getText());
         }
         realm.commitTransaction();
     }
 
-    public void addInfo(final DataSnapshot data) {
-        realm.beginTransaction();
-        for (DataSnapshot postSnapshot : data.getChildren()) {
-            HashMap<String, Object> item = (HashMap<String, Object>) postSnapshot.getValue();
-            Messages obj = Messages.create(realm, (Long) item.get("date"));
-            obj.setText((String)item.get("text"));
-        }
-        realm.commitTransaction();
-    }
+//    public void addInfo(final DataSnapshot data) {
+//        realm.beginTransaction();
+//        for (DataSnapshot postSnapshot : data.getChildren()) {
+//            HashMap<String, Object> item = (HashMap<String, Object>) postSnapshot.getValue();
+//            Messages obj = Messages.create(realm, (Long) item.get("date"));
+//            obj.setText((String)item.get("text"));
+//        }
+//        realm.commitTransaction();
+//    }
 
 
     public void addInfo(final String text) {

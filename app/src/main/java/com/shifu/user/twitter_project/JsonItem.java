@@ -6,43 +6,35 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class JsonItem {
 
-    @SerializedName("id")
+    @SerializedName("text")
     @Expose
-    private int id;
-    @SerializedName("title")
+    private String text;
+    @SerializedName("date")
     @Expose
-    private String title;
-    @SerializedName("url")
-    @Expose
-    private String url;
+    private Long date;
 
-    public int getId() {
-        return id;
+    public String getText() {
+        return text;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setText(String data) {
+        this.text = data;
     }
 
-    public String getTitle() {
-        return title;
+    public Long getDate() {
+        return date;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
+    public void setDate(Long data) {
+        this.date = data;
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("id", id).append("title", title).append("url", url).toString();
+        return new ToStringBuilder(this)
+                .append("text", text)
+                .append("date", date)
+                .toString();
     }
 
 }

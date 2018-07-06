@@ -5,13 +5,11 @@
     <string name="edit">Редактировать</string>
     <string name="list">Список</string>
 
+    <string name="save">Сохранить</string>
     <string name="add">Добавить</string>
+
     <string name="profile">Профиль</string>
 
     <string name="add_text">Сообщение:</string>
-    <string name="msg_save">Сохранить</string>
-    <string name="msg_add">Добавить</string>
-
-    <string name="article_entry">Заголовок: "%1$s"\nСсылка: %2$s</string>
 
 </resources>

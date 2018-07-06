@@ -42,7 +42,7 @@ public class AddActivity extends AppCompatActivity {
         intent = getIntent();
         if (intent.getStringExtra("text") != null) {
             text.setText(intent.getStringExtra("text"));
-            savebutton.setText(getResources().getString(R.string.msg_save));
+            savebutton.setText(getResources().getString(R.string.save));
         }
 
 
