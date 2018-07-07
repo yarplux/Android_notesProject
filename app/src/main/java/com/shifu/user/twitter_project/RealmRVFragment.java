@@ -14,6 +14,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Date;
+
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
@@ -28,6 +32,7 @@ public class RealmRVFragment extends Fragment {
     protected RealmRVAdapter mAdapter;
     protected RecyclerView.LayoutManager mLayoutManager;
     SwipeController swipeController = null;
+    FirebaseController firebaseController = null;
 
     @Override
     public void onAttach(Context context) {
@@ -41,10 +46,11 @@ public class RealmRVFragment extends Fragment {
 
         realm = activity.getRealmDB();
         mAdapter = activity.getRealmCustomAdapter();
+        firebaseController = activity.getFirebaseController();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fr_msg_list, container, false);
@@ -58,9 +64,7 @@ public class RealmRVFragment extends Fragment {
         swipeController = new SwipeController(getActivity(), new SwipeControllerActions() {
             @Override
             public void onDelete(final int position) {
-                //Log.d("Deleted:", Long.toString(mAdapter.getItem(position).getID()));
-                new RealmController(getContext()).removeItemById(mAdapter.getItem(position).getDate());
-                mAdapter.notifyDataSetChanged();
+                firebaseController.deleteMessage(position);
             }
 
             @Override
@@ -92,15 +96,11 @@ public class RealmRVFragment extends Fragment {
     }
 
     public void addItem(String text) {
-        new RealmController(this.getContext()).addInfo(text);
-
-        // DANGEROUS OPERATION, IF DB TOO MUCH!
-        int number = (int)(long) realm.where(Messages.class).count();
-        mAdapter.notifyItemInserted(number);
+        firebaseController.pushMessage(text, new Date().getTime(), 0L);
     }
 
     public void updateItem(int position, String text) {
-        new RealmController(this.getContext()).updateInfo(mAdapter.getItem(position).getDate(), text);
+        new RealmController(this.getContext()).updateInfo(mAdapter.getItem(position).getID(), text);
         mAdapter.notifyDataSetChanged();
     }
 

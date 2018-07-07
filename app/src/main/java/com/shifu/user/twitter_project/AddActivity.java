@@ -36,15 +36,14 @@ public class AddActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add);
 
-        savebutton = (Button) findViewById(R.id.button_save);
-        text = (EditText) findViewById(R.id.add_text);
+        savebutton = findViewById(R.id.button_save);
+        text = findViewById(R.id.add_text);
 
         intent = getIntent();
         if (intent.getStringExtra("text") != null) {
             text.setText(intent.getStringExtra("text"));
             savebutton.setText(getResources().getString(R.string.save));
         }
-
 
         savebutton.setOnClickListener(new View.OnClickListener() {
 
