@@ -113,6 +113,7 @@ public class FirebaseController {
 
             @Override
             public void onResponse(@NotNull Call<JsonResponse> call, @NotNull Response<JsonResponse> response) {
+                result = Boolean.toString(true);
             }
             @Override
             public void onFailure(@NotNull Call<JsonResponse> call, @NotNull Throwable t) {
@@ -122,10 +123,38 @@ public class FirebaseController {
 
     }
 
-//    public void updateMessage(final String text, String firebase_id) {
-//        result = null;
-//
-//
-//    }
+    public void updateMessage(int position, final String text) {
+        result = null;
+
+        new RealmController(context).updateInfo(mAdapter.getItem(position).getID(), text);
+        mAdapter.notifyDataSetChanged();
+
+        JsonItemPost jsonItemPost = new JsonItemPost();
+        jsonItemPost.setText(text);
+        jsonItemPost.setDate(mAdapter.getItem(position).getDate());
+        jsonItemPost.setAuthor_id(0L);
+
+        jsonApi.putMessage(mAdapter.getItem(position).getFirebase_id(), jsonItemPost)
+                .enqueue(new Callback<JsonItemPost>() {
+
+            @Override
+            public void onResponse(@NotNull Call<JsonItemPost> call, @NotNull Response<JsonItemPost> response) {
+
+                if (response.isSuccessful()) {
+                    Log.d("POST Success", response.body().toString());
+                } else {
+                    Log.d("POST Fail", response.body().toString());
+                }
+                result = Boolean.toString(response.isSuccessful());
+            }
+
+            @Override
+            public void onFailure(@NotNull Call<JsonItemPost> call, @NotNull Throwable t) {
+                Log.e("POST Error", t.toString());
+                result = t.toString();
+            }
+        });
+
+    }
 
 }

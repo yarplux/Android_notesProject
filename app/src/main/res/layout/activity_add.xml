@@ -18,11 +18,28 @@
         android:layout_height="wrap_content"
         android:inputType="text|textAutoCorrect|textMultiLine" />
 
-    <Button
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        style="?android:attr/buttonBarStyle">
+
+        <Button
+            android:id="@+id/button_cansel"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:text="@string/cansel" />
+
+        <Button
         android:id="@+id/button_save"
+            style="?android:attr/buttonBarButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
         android:text="@string/add" />
+
+    </LinearLayout>
 
 </LinearLayout>

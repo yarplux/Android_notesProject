@@ -27,6 +27,6 @@ public interface JsonApi {
     Call<JsonResponse> deleteMessage(@Path("firebase_id") String firebase_id);
 
     @PUT(BASE_URL+"/{firebase_id}.json")
-    Call<JsonItemPost> updateMessage(@Path("firebase_id") String firebase_id, @Body JsonItemPost jsonBody);
+    Call<JsonItemPost> putMessage(@Path("firebase_id") String firebase_id, @Body JsonItemPost jsonBody);
 
 }

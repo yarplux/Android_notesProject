@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -15,8 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Date;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -31,7 +28,6 @@ public class RealmRVFragment extends Fragment {
     protected RecyclerView mRecyclerView;
     protected RealmRVAdapter mAdapter;
     protected RecyclerView.LayoutManager mLayoutManager;
-    SwipeController swipeController = null;
     FirebaseController firebaseController = null;
 
     @Override
@@ -61,7 +57,7 @@ public class RealmRVFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
 
-        swipeController = new SwipeController(getActivity(), new SwipeControllerActions() {
+        final SwipeController swipeController = new SwipeController(getActivity(), new SwipeControllerActions() {
             @Override
             public void onDelete(final int position) {
                 firebaseController.deleteMessage(position);
@@ -70,7 +66,7 @@ public class RealmRVFragment extends Fragment {
             @Override
             public void onEdit(final int position) {
                 Intent intent = new Intent(getActivity(), AddActivity.class);
-                Messages updateRow = realm.where(Messages.class).equalTo(FIELD_ID, mAdapter.getItem(position).getDate()).findFirst();
+                Messages updateRow = realm.where(Messages.class).equalTo(FIELD_ID, mAdapter.getItem(position).getID()).findFirst();
                 intent.putExtra("text", updateRow.getText());
                 intent.putExtra("position", position);
                 startActivityForResult(intent, 1);
@@ -90,20 +86,6 @@ public class RealmRVFragment extends Fragment {
         return rootView;
     }
 
-
-    public SwipeController getSwipeController() {
-        return swipeController;
-    }
-
-    public void addItem(String text) {
-        firebaseController.pushMessage(text, new Date().getTime(), 0L);
-    }
-
-    public void updateItem(int position, String text) {
-        new RealmController(this.getContext()).updateInfo(mAdapter.getItem(position).getID(), text);
-        mAdapter.notifyDataSetChanged();
-    }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
@@ -111,7 +93,7 @@ public class RealmRVFragment extends Fragment {
                 case 1:
                     String text = data.getStringExtra("text");
                     Integer position = data.getIntExtra("position", -1);
-                    updateItem(position, text);
+                    firebaseController.updateMessage(position, text);
                     break;
             }
         }

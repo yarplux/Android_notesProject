@@ -5,6 +5,8 @@ class JsonItemPost {
     private Long date;
     private Long author_id;
 
+    JsonItemPost(){}
+
     JsonItemPost(String text, Long date, Long author_id) {
         this.text = text;
         this.date = date;

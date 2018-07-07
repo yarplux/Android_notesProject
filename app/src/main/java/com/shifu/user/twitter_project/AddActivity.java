@@ -11,6 +11,7 @@ public class AddActivity extends AppCompatActivity {
 
     private Integer position;
     Button savebutton;
+    Button canselbutton;
     EditText text;
     Intent intent;
 
@@ -37,6 +38,7 @@ public class AddActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add);
 
         savebutton = findViewById(R.id.button_save);
+        canselbutton = findViewById(R.id.button_cansel);
         text = findViewById(R.id.add_text);
 
         intent = getIntent();
@@ -44,6 +46,14 @@ public class AddActivity extends AppCompatActivity {
             text.setText(intent.getStringExtra("text"));
             savebutton.setText(getResources().getString(R.string.save));
         }
+
+        canselbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setResult(RESULT_CANCELED);
+                finish();
+            }
+        });
 
         savebutton.setOnClickListener(new View.OnClickListener() {
 

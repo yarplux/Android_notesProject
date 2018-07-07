@@ -10,6 +10,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import java.util.Date;
+
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
             switch (requestCode) {
                 case 0:
                     String text = data.getStringExtra("text");
-                    realmRVFragment.addItem(text);
+                    firebaseController.pushMessage(text, new Date().getTime(), 0L);
                     break;
             }
         }
