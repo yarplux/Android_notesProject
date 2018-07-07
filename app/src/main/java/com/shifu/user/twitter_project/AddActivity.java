@@ -1,15 +1,19 @@
 package com.shifu.user.twitter_project;
 
 import android.content.Intent;
+import android.graphics.Point;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Display;
+import android.view.Gravity;
 import android.view.View;
 import android.os.Bundle;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 
 public class AddActivity extends AppCompatActivity {
 
-    private Integer position;
     Button savebutton;
     Button canselbutton;
     EditText text;
@@ -19,22 +23,46 @@ public class AddActivity extends AppCompatActivity {
     @Override
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
+
+//        final View view = getWindow().getDecorView();
+//        final WindowManager.LayoutParams lp = (WindowManager.LayoutParams) view.getLayoutParams();
 //
-//        if (getResources().getBoolean(R.bool.is_tablet) && mOpenAsSmallWindow) {
-//            final View view = getWindow().getDecorView();
-//            final WindowManager.LayoutParams lp = (WindowManager.LayoutParams) view.getLayoutParams();
-//
-//            lp.gravity = Gravity.CENTER;
-//
-//            lp.width = mActivityWindowWidth;
-//            lp.height = mActivityWindowHeight;
-//            getWindowManager().updateViewLayout(view, lp);
-//        }
+//        lp.gravity = Gravity.CENTER;
+//        getWindowManager().updateViewLayout(view, lp);
+
+
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+//        // Creates the layout for the window and the look of it
+//        requestWindowFeature(Window.FEATURE_SWIPE_TO_DISMISS);
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+//        // Params for the window.
+//        // You can easily set the alpha and the dim behind the window from here
+//        WindowManager.LayoutParams params = getWindow().getAttributes();
+//        params.alpha = 1.0f;    // lower than one makes it more transparent
+//        params.dimAmount = 1f;  // set it higher if you want to dim behind the window
+//        getWindow().setAttributes(params);
+
+        // Gets the display size so that you can set the window to a percent of that
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int width = size.x;
+        int height = size.y;
+
+        // You could also easily used an integer value from the shared preferences to set the percent
+        if (height > width) {
+            getWindow().setLayout((int) (width * .9), (int) (height * .7));
+        } else {
+            getWindow().setLayout((int) (width * .7), (int) (height * .8));
+        }
+
         setContentView(R.layout.activity_add);
 
         savebutton = findViewById(R.id.button_save);

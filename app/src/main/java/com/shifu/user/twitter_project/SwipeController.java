@@ -221,6 +221,10 @@ public class SwipeController extends ItemTouchHelper.Callback {
 
     public void onDraw(Canvas c) {
         if (currentItemViewHolder != null) {
+            Paint p = new Paint();
+            p.setColor(Color.WHITE);
+            p.setStyle(Paint.Style.FILL);
+            c.drawPaint(p);
             drawButtons(c, currentItemViewHolder);
         }
     }

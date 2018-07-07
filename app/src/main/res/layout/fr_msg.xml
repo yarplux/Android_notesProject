@@ -3,26 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <RelativeLayout
-        android:id="@+id/view_background"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/bg_row_background">
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/view_foreground"
-        android:focusable="true"
-        android:clickable="true"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:padding="@dimen/padd_10">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@android:color/white"
+            android:padding="@dimen/padd_10">
 
             <TextView
                 android:id="@+id/msg_text"
@@ -40,7 +26,5 @@
                 android:textAlignment="textEnd"/>
 
         </LinearLayout>
-
-    </RelativeLayout>
 
 </FrameLayout>
