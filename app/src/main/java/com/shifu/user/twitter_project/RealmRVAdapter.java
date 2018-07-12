@@ -1,7 +1,6 @@
 package com.shifu.user.twitter_project;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,18 +15,17 @@ import io.realm.RealmRecyclerViewAdapter;
 
 public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAdapter.ViewHolder> {
 
-    private String date_format = "HH:mm:ss dd.MM.yyyy";
+    private final String date_format = "HH:mm:ss dd.MM.yyyy";
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        private  TextView text, date;
+        private  TextView text, date, author;
         public Messages data;
 
-        public ViewHolder(View v) {
+        ViewHolder(View v) {
             super(v);
-
-            text = (TextView) v.findViewById(R.id.msg_text);
-            date = (TextView) v.findViewById(R.id.msg_date);
-
+            text = v.findViewById(R.id.msg_text);
+            date = v.findViewById(R.id.msg_date);
+            author = v.findViewById(R.id.msg_author);
         }
     }
 
@@ -49,6 +47,12 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAd
         viewHolder.data = obj;
         viewHolder.text.setText(obj.getText());
         viewHolder.date.setText(new SimpleDateFormat(date_format, Locale.US).format(new Date(obj.getDate())));
+//        if (obj.getRetwitted() == null || obj.getRetwitted().equals("")) {
+//            viewHolder.author.setText(obj.getUsername());
+//        } else {
+//            viewHolder.author.setText(FragmentList.activity.getResources()
+//                            .getString(R.string.retwitted, obj.getRetwitted()));
+//        }
     }
 
     public void setData(OrderedRealmCollection<Messages> data) {

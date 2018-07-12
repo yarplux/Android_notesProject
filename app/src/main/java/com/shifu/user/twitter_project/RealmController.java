@@ -2,6 +2,7 @@ package com.shifu.user.twitter_project;
 
 import android.content.Context;
 import android.util.Log;
+import android.os.Handler;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -14,11 +15,11 @@ import io.realm.RealmResults;
 import static com.shifu.user.twitter_project.Messages.FIELD_ID;
 
 public class RealmController {
-
     private Realm realm;
-    private Context context;
+    private Handler h;
 
-    RealmController(Context context) {
+
+    RealmController(Context context, Handler h) {
         Realm.init(context);
 
         RealmConfiguration config = new RealmConfiguration.Builder()
@@ -27,7 +28,33 @@ public class RealmController {
 
         realm = Realm.getInstance(config);
         //realm = Realm.getDefaultInstance();
-        this.context = context;
+        this.h = h;
+    }
+
+    public void addUsers(final Map<String, JsonResponse> data, final Handler h) {
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(MessagesUsers.class).findAll().deleteAllFromRealm();
+                for (String key: data.keySet()) {
+                    JsonResponse obj = data.get(key);
+                    MessagesUsers item = MessagesUsers.create(realm);
+                    item.setUsername(obj.getName());
+                }
+                h.sendEmptyMessage(1);
+            }
+        });
+    }
+
+    public void changeUser(final String username) {
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(MessagesAuthor.class).findAll().deleteAllFromRealm();
+                realm.createObject(MessagesAuthor.class, username);
+                h.sendEmptyMessage(1);
+            }
+        });
     }
 
     public void addDBInfo(Map<String, JsonItem> data) {
@@ -39,6 +66,8 @@ public class RealmController {
             item.setText(obj.getText());
             item.setDate(obj.getDate());
             item.setFirebase_id(key);
+            item.setRetwitted(obj.getRetwitted());
+            item.setUsername(obj.getAuthor());
         }
         realm.commitTransaction();
     }

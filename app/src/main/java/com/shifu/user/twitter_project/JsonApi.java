@@ -1,32 +1,52 @@
 package com.shifu.user.twitter_project;
 
-import com.google.gson.JsonElement;
+import org.json.JSONObject;
 
-import java.util.List;
 import java.util.Map;
-
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface JsonApi {
 
-    String  BASE_URL = "messages";
+    String  MESSAGES = "messages";
+    String  USERS = "users";
 
-    @GET("{file}")
-    Call<Map<String, JsonItem>> loadMessages(@Path("file") String file);
+    @GET(MESSAGES+".json")
+    Call<Map<String, JsonItem>> loadMessages(@Query("orderBy") String authorField, @Query("equalTo") String authorName);
 
-    @POST(BASE_URL+".json")
-    Call<JsonResponse> pushMessage(@Body JsonItemPost jsonBody);
+    @POST(MESSAGES+".json")
+    Call<JsonResponse> pushMessage(@Body JsonItem jsonBody);
 
-    @DELETE(BASE_URL+"/{firebase_id}.json")
+    @DELETE(MESSAGES+"/{firebase_id}.json")
     Call<JsonResponse> deleteMessage(@Path("firebase_id") String firebase_id);
 
-    @PUT(BASE_URL+"/{firebase_id}.json")
-    Call<JsonItemPost> putMessage(@Path("firebase_id") String firebase_id, @Body JsonItemPost jsonBody);
+    @PUT(MESSAGES+"/{firebase_id}.json")
+    Call<JsonItem> putMessage(@Path("firebase_id") String firebase_id, @Body JsonItem jsonBody);
+
+    @GET(USERS+".json")
+    Call<Map<String, JsonResponse>> checkAuthor(@Query("orderBy") String authorField, @Query("equalTo") String authorName);
+
+    @POST(USERS+".json")
+    Call<JsonResponse> pushUser(@Body JsonResponse jsonBody);
+
+    @GET(USERS+".json")
+    Call<Map<String, JsonResponse>> loadUsers();
+
+    @POST("signupNewUser")
+    Call<JsonSignInUpResponse> signUp(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonSignInUpRequest request);
+
+    @POST("setAccountInfo")
+    Call<JsonUpdateAuthResponse> updateProfile(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonUpdateAuthRequest request);
+
+    @POST("verifyPassword")
+    Call<JsonSignInUpResponse> signIn(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonSignInUpRequest request);
+
 
 }

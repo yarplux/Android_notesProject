@@ -1,17 +1,41 @@
 <resources>
     <string name="app_name">twitter-project</string>
-    <string name="back">Назад</string>
+    <string name="action_back">Назад</string>
     <string name="delete">Удалить</string>
     <string name="edit">Редактировать</string>
-    <string name="list">Список</string>
+    <string name="authors">Список авторов</string>
 
     <string name="save">Сохранить</string>
     <string name="add">Добавить</string>
+    <string name="next">Продолжить</string>
     <string name="cansel">Отменить</string>
 
 
-    <string name="profile">Профиль</string>
+    <string name="menu_profile">Профиль</string>
 
-    <string name="add_text">Сообщение:</string>
+    <string name="msg_label">Сообщение:</string>
+    <string name="msg_error">Сообщение не должно быть пустым!</string>
+
+    <string name="exist">Такое имя уже есть!</string>
+
+    <string name="get_error">Ошибка получения данных!</string>
+    <string name="post_error">Ошибка загрузки данных!</string>
+
+    <string name="retwitted">Retwitted from: %s</string>
+    <string name="title_activity_login">Профиль</string>
+
+    <!-- TO Login page-->
+    <string name="prompt_login">Логин</string>
+    <string name="prompt_password">Пароль</string>
+    <string name="action_sign_in">Войти</string>
+    <string name="action_sign_up_prepare">Регистрация</string>
+    <string name="error_invalid_login">Некорректное имя пользователя!</string>
+    <string name="error_login_exists">Пользователь уже существует!</string>
+    <string name="error_login_noexists">Пользователь не существует!</string>
+    <string name="error_invalid_password">Пароль слишком короткий!</string>
+    <string name="error_incorrect_password">Пароль некорректен!</string>
+    <string name="error_field_required">Поле обязательно для заполнения</string>
+    <string name="action_sign_up">Зарегистрироваться</string>\
+    <string name="action_logout">Выйти</string>
 
 </resources>

@@ -13,6 +13,22 @@ public class JsonItem {
     @Expose
     private Long date;
 
+    @SerializedName("author")
+    @Expose
+    private String author;
+
+    @SerializedName("retwitted")
+    @Expose
+    private String retwitted;
+
+    JsonItem(){}
+
+    JsonItem(String text, Long date, String username) {
+        this.text = text;
+        this.date = date;
+        this.author = username;
+    }
+
     public String getText() {
         return text;
     }
@@ -28,6 +44,13 @@ public class JsonItem {
     public void setDate(Long data) {
         this.date = data;
     }
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
 
     @Override
     public String toString() {
@@ -37,4 +60,11 @@ public class JsonItem {
                 .toString();
     }
 
+    public String getRetwitted() {
+        return retwitted;
+    }
+
+    public void setRetwitted(String retwitted) {
+        this.retwitted = retwitted;
+    }
 }

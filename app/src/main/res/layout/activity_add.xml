@@ -8,11 +8,9 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="?android:attr/actionBarSize"
             android:labelFor="@+id/add_text"
             android:id="@+id/add_label"
-            android:focusable="true"
-            android:text="@string/add_text"/>
+            android:text="@string/msg_label"/>
         <EditText
             android:id="@+id/add_text"
             android:layout_width="match_parent"
