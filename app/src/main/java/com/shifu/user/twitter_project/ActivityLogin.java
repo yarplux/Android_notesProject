@@ -110,12 +110,15 @@ public class ActivityLogin extends AppCompatActivity {
             public boolean handleMessage(android.os.Message msg) {
                 Log.d("Handler", Integer.toString(msg.what));
                 if (msg.what == 1) {
+                    mLoginView.setError(null);
+                    mPasswordView.setError(null);
+                    mLeftButton.setText(R.string.action_sign_in);
+                    mRightButton.setText(R.string.action_sign_up_prepare);
+                    signInState=true;
                     login = true;
                     showProgress(false);
                     Intent intent = getIntent();
-                    intent.putExtra("username", mLoginView.getText().toString());
-                    intent.putExtra("login", login);
-                    setResult(RESULT_OK, intent);
+                    intent.putExtra(Auth.class.getCanonicalName(), (Auth) msg.obj);
                 } else {
                     showProgress(false);
                     if (msg.obj.equals("EMAIL_EXISTS")) {
@@ -147,7 +150,6 @@ public class ActivityLogin extends AppCompatActivity {
         }, 300);
 
         login = false;
-        getIntent().putExtra("login", false);
     }
 
     private void changeState() {
@@ -176,11 +178,7 @@ public class ActivityLogin extends AppCompatActivity {
 
         if (check(user, password)) {
             showProgress(true);
-            if (signInState) {
-                new FirebaseController(getIntent().getStringExtra("URL"), h).signIn(user, password);
-            } else {
-                new FirebaseController(getIntent().getStringExtra("URL"), h).signUp(user, password);
-            }
+            new FirebaseController(getIntent().getStringExtra("URL"), h).login(user, password, !signInState);
         }
     }
 

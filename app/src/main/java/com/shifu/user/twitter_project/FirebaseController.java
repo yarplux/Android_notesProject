@@ -62,59 +62,28 @@ public class FirebaseController{
         this.h = h;
     }
 
-    public void signIn(String user, String pass) {
+    public void login(final String user, String pass, final Boolean newUser) {
+
         String mail = user+MAIL_DOMAIN;
-        Log.d("GET TOKEN "+mail, jsonApi.signIn("application/json", API_KEY, new JsonSignInUpRequest(mail, pass)).request().toString());
-        jsonApi.signIn("application/json", API_KEY, new JsonSignInUpRequest(mail, pass)).enqueue(new Callback<JsonSignInUpResponse>() {
+        String action = (newUser)?"signupNewUser":"verifyPassword";
+
+        Log.d("GET TOKEN", jsonApi.login(action, "application/json", API_KEY, new JsonLoginRequest(mail,pass)).request().toString());
+        jsonApi.login(action,"application/json", API_KEY, new JsonLoginRequest(mail,pass)).enqueue(new Callback<JsonLoginResponse>() {
             @Override
-            public void onResponse(@NotNull Call <JsonSignInUpResponse> call, @NotNull Response <JsonSignInUpResponse> response) {
+            public void onResponse(@NotNull Call<JsonLoginResponse> call, @NotNull Response<JsonLoginResponse> response) {
                 if (response.isSuccessful()) {
                     Log.d("GET TOKEN RESPONSE", response.body().toString());
-                    h.sendEmptyMessage(1);
-                } else {
-                    Message msg = new Message();
-                    try {
-                        // Мы знаем структуру получаемого JSON.
-                        // Нужно ли переделывать этот способ на десериализацию? / конвертацию?
-                        JSONObject jAllErrors = new JSONObject(response.errorBody().string());
-                        JSONObject jObjError = new JSONObject(jAllErrors.get("error").toString());
-
-                        Log.e("GET error", jObjError.getString("message"));
-
-                        msg.obj = jObjError.getString("message");
-                        msg.what = 0;
-                        h.sendMessage(msg);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        msg.obj = e.toString();
-                        msg.what = 0;
+                    if (newUser) {
+                        updateProfile(user, response.body().getLocalId(), response.body().getIdToken());
+                    } else {
+                        Message msg = new Message();
+                        msg.what = 1;
+                        msg.obj = new Auth(
+                                user,
+                                response.body().getLocalId(),
+                                response.body().getIdToken());
                         h.sendMessage(msg);
                     }
-                }
-            }
-
-            @Override
-            public void onFailure(@NotNull Call<JsonSignInUpResponse> call, @NotNull Throwable t) {
-                Message msg = new Message();
-                Log.e("GET Failure", call.toString());
-                msg.obj = t.toString();
-                msg.what = 0;
-                h.sendMessage(msg);
-            }
-
-        });
-
-    }
-
-    public void signUp(final String user, String pass) {
-        String mail = user+MAIL_DOMAIN;
-        Log.d("GET TOKEN", jsonApi.signUp("application/json", API_KEY, new JsonSignInUpRequest(mail,pass)).request().toString());
-        jsonApi.signUp("application/json", API_KEY, new JsonSignInUpRequest(mail,pass)).enqueue(new Callback<JsonSignInUpResponse>() {
-            @Override
-            public void onResponse(@NotNull Call<JsonSignInUpResponse> call, @NotNull Response<JsonSignInUpResponse> response) {
-                if (response.isSuccessful()) {
-                    Log.d("GET TOKEN RESPONSE", response.body().toString());
-                        updateProfile(user, response.body().getLocalId(), response.body().getIdToken());
                 } else {
                     Message msg = new Message();
                     try {
@@ -137,7 +106,7 @@ public class FirebaseController{
             }
 
             @Override
-            public void onFailure(@NotNull Call<JsonSignInUpResponse> call, @NotNull Throwable t) {
+            public void onFailure(@NotNull Call<JsonLoginResponse> call, @NotNull Throwable t) {
                 Message msg = new Message();
                 Log.e("GET Failure", call.toString());
                 msg.obj = t.toString();
@@ -166,7 +135,10 @@ public class FirebaseController{
                     Log.d("UPDATE Expires in", response.body().getExpiresIn()+" sec");
 
                     Message msg = new Message();
-                    msg.obj = response.body().getDisplayName();
+                    msg.obj = new Auth(
+                            response.body().getDisplayName(),
+                            response.body().getLocalId(),
+                            response.body().getIdToken());
                     msg.what = 1;
                     h.sendMessage(msg);
 
@@ -381,7 +353,7 @@ public class FirebaseController{
         jsonItem.setText(text);
         jsonItem.setDate(mAdapter.getItem(position).getDate());
         jsonItem.setAuthor(mAdapter.getItem(position).getUsername());
-        jsonItem.setRetwitted(mAdapter.getItem(position).getRetwitted());
+        jsonItem.setRetwitUid(mAdapter.getItem(position).getRetwitted());
         jsonApi.putMessage(mAdapter.getItem(position).getFirebase_id(), jsonItem)
                 .enqueue(new Callback<JsonItem>() {
 

@@ -39,6 +39,8 @@ public class ActivityMain extends AppCompatActivity {
     private ActivityMain activity = this;
 
     private boolean loginState;
+    Auth auth=null;
+
     private String username;
     private Handler h = new Handler();
 
@@ -166,7 +168,6 @@ public class ActivityMain extends AppCompatActivity {
 
                 case LOGIN:
                     loginState = data.getBooleanExtra("login", true);
-                    Log.d("GET Login", Boolean.toString(loginState));
 
 //                    username = data.getStringExtra("username");
 //                    Log.d("Loaded username", username);

@@ -1,10 +1,6 @@
 package com.shifu.user.twitter_project;
 
-import android.util.Log;
-
 import java.util.UUID;
-
-import io.realm.RealmList;
 import io.realm.annotations.PrimaryKey;
 import io.realm.Realm;
 import io.realm.RealmObject;
@@ -23,22 +19,7 @@ public class Messages  extends RealmObject {
     private Long date;
 
     static Messages create(Realm realm) {
-        MessagesList parent;
-
-        if (realm.where(MessagesList.class).findFirst() == null) {
-            parent = new MessagesList();
-        } else {
-            parent = realm.where(MessagesList.class).findFirst();
-        }
-
-        RealmList<Messages> items = parent.getItemList();
-        Messages item;
-
-        String id = UUID.randomUUID().toString();
-        Log.d("Created UUID", id);
-        item = realm.createObject(Messages.class, id);
-        items.add(item);
-        return item;
+        return realm.createObject(Messages.class, UUID.randomUUID().toString());
     }
 
     static void delete(Realm realm, String id) {

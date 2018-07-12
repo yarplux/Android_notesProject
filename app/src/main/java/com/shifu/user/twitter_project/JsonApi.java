@@ -1,7 +1,5 @@
 package com.shifu.user.twitter_project;
 
-import org.json.JSONObject;
-
 import java.util.Map;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -39,14 +37,11 @@ public interface JsonApi {
     @GET(USERS+".json")
     Call<Map<String, JsonResponse>> loadUsers();
 
-    @POST("signupNewUser")
-    Call<JsonSignInUpResponse> signUp(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonSignInUpRequest request);
+    @POST("{action}")
+    Call<JsonLoginResponse> login(@Path("action") String action, @Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonLoginRequest request);
 
     @POST("setAccountInfo")
     Call<JsonUpdateAuthResponse> updateProfile(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonUpdateAuthRequest request);
-
-    @POST("verifyPassword")
-    Call<JsonSignInUpResponse> signIn(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonSignInUpRequest request);
 
 
 }

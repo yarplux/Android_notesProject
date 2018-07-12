@@ -1,7 +1,6 @@
 package com.shifu.user.twitter_project;
 
 import android.content.Context;
-import android.util.Log;
 import android.os.Handler;
 
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +65,7 @@ public class RealmController {
             item.setText(obj.getText());
             item.setDate(obj.getDate());
             item.setFirebase_id(key);
-            item.setRetwitted(obj.getRetwitted());
+            item.setRetwitted(obj.getRetwitUid());
             item.setUsername(obj.getAuthor());
         }
         realm.commitTransaction();

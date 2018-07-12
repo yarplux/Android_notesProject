@@ -47,11 +47,11 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAd
         viewHolder.data = obj;
         viewHolder.text.setText(obj.getText());
         viewHolder.date.setText(new SimpleDateFormat(date_format, Locale.US).format(new Date(obj.getDate())));
-//        if (obj.getRetwitted() == null || obj.getRetwitted().equals("")) {
+//        if (obj.getRetwitUid() == null || obj.getRetwitUid().equals("")) {
 //            viewHolder.author.setText(obj.getUsername());
 //        } else {
 //            viewHolder.author.setText(FragmentList.activity.getResources()
-//                            .getString(R.string.retwitted, obj.getRetwitted()));
+//                            .getString(R.string.retwitted, obj.getRetwitUid()));
 //        }
     }
 

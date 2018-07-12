@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-public class JsonSignInUpRequest {
+public class JsonLoginRequest {
 
     @SerializedName("email")
     @Expose
@@ -17,7 +17,7 @@ public class JsonSignInUpRequest {
     @Expose
     private boolean returnSecureToken = true;
 
-    JsonSignInUpRequest(String email, String password) {
+    JsonLoginRequest(String email, String password) {
         this.password = password;
         this.email = email;
     }

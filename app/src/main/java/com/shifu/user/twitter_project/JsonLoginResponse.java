@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-public class JsonSignInUpResponse {
+public class JsonLoginResponse {
 
     @SerializedName("kind")
     @Expose

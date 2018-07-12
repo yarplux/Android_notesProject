@@ -21,7 +21,7 @@
     <string name="get_error">Ошибка получения данных!</string>
     <string name="post_error">Ошибка загрузки данных!</string>
 
-    <string name="retwitted">Retwitted from: %s</string>
+    <string name="retwitUid">Retwitted from: %s</string>
     <string name="title_activity_login">Профиль</string>
 
     <!-- TO Login page-->
