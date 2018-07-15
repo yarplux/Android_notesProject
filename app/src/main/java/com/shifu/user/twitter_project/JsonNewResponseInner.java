@@ -3,7 +3,7 @@ package com.shifu.user.twitter_project;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-class JsonUpdateAuthResponseInner {
+class JsonNewResponseInner {
     @SerializedName("providerId")
     @Expose
     private String providerId;

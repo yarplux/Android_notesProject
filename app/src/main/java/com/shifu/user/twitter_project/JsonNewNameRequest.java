@@ -3,22 +3,23 @@ package com.shifu.user.twitter_project;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-class JsonUpdateAuthRequest {
+public class JsonNewNameRequest {
     @SerializedName("idToken")
     @Expose
     private String idToken;
-    @SerializedName("displayName")
+
+    @SerializedName("email")
     @Expose
-    private String displayName;
+    private String email;
 
     @SerializedName("returnSecureToken")
     @Expose
     private boolean returnSecureToken;
 
-    JsonUpdateAuthRequest(String idToken, String displayName, boolean returnSecureToken){
+    JsonNewNameRequest(String idToken, String email, boolean returnSecureToken){
         super();
         this.idToken = idToken;
-        this.displayName = displayName;
+        this.email = email;
         this.returnSecureToken = returnSecureToken;
     }
 }

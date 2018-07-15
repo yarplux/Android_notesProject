@@ -33,14 +33,25 @@ public interface JsonApi {
 
 
     /**
-     * Users actions
+     * Users actions with base of users
     */
     @POST("{action}")
     Call<JsonLoginResponse> login(@Path("action") String action, @Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonLoginRequest request);
 
-    @POST("setAccountInfo")
-    Call<JsonUpdateAuthResponse> updateProfile(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonUpdateAuthRequest request);
+    @POST("token")
+    Call<JsonRefreshResponse> refresh(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonRefreshRequest request);
 
+    @POST("setAccountInfo")
+    Call<JsonNewResponse> change(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonNewNameRequest request);
+
+    @POST("setAccountInfo")
+    Call<JsonNewResponse> change(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonNewPassRequest request);
+
+
+
+    /**
+     * Users actions with table of users in database
+     */
     @PUT(USERS+"/{uid}.json")
     Call<JsonResponse> pushUser(@Path("uid") String uid, @Body JsonResponse jsonBody, @Query("auth") String idToken);
 
@@ -49,8 +60,5 @@ public interface JsonApi {
 
     @GET(USERS+".json")
     Call<Map<String, JsonResponse>> loadUsers(@Query("auth") String idToken);
-
-    @POST("token")
-    Call<JsonRefreshResponse> refresh(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonRefreshRequest request);
 
 }

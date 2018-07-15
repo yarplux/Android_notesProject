@@ -81,4 +81,7 @@ class Auth implements Parcelable{
         return refresh;
     }
 
+    public void setIdToken(String idToken) {
+        this.idToken = idToken;
+    }
 }

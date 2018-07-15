@@ -37,13 +37,14 @@ public class ActivityLogin extends AppCompatActivity {
     private View mLoginFormView;
 
     // UI alternative
-    private Button mButtonLogout;
-    private Button mButtonSave;
+
     private EditText mNewLoginView;
     private EditText mNewPassView;
 
     private boolean signInState = true;
     private boolean login;
+
+    private int waitUpdate = 0;
 
     private static RealmController rc = ActivityMain.getRC();
 
@@ -74,6 +75,13 @@ public class ActivityLogin extends AppCompatActivity {
                             }
                             break;
 
+                        case "FC.updatePass":
+                            waitUpdate--;
+                            break;
+
+                        case "RC.changeUserName":
+                            Log.d(TAG, "Username now:"+ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUsername());
+                            waitUpdate--;
                         case "RC.addMsgs":
                             ActivityMain.setRA(new RealmRVAdapter(rc.getBase(Messages.class, "date")));
                             ActivityMain.getRA().notifyDataSetChanged();
@@ -110,19 +118,25 @@ public class ActivityLogin extends AppCompatActivity {
                             mPasswordView.setError(getString(R.string.error_incorrect_password));
                             mPasswordView.requestFocus();
                             break;
-
+                        case "CREDENTIAL_TOO_OLD_LOGIN_AGAIN":
+                            Toast.makeText(getApplicationContext(), getString(R.string.error_old_credentials), Toast.LENGTH_SHORT).show();
                         default:
-                            Toast.makeText(getApplicationContext(), (String) msg.obj, Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getApplicationContext(), (String) msg.obj, Toast.LENGTH_SHORT).show();
                             break;
                     }
+                } else if (msg.what == 7) {
+                    Log.d(TAG, "Base now:"+ActivityMain.getRC().getSize(MessagesAuthor.class));
+                    Log.d(TAG, "Username now:"+ActivityMain.getRC().getItem(MessagesAuthor.class, MessagesAuthor.FIELD_ID, msg.obj).getUsername());
                 }
+
+                if (waitUpdate == 0) showProgress(false);
                 return false;
             }
         });
 
         login = rc.getSize(MessagesAuthor.class) >0;
 
-        mButtonLogout = findViewById(R.id.logout_button);
+        Button mButtonLogout = findViewById(R.id.logout_button);
         mButtonLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -133,11 +147,11 @@ public class ActivityLogin extends AppCompatActivity {
         mNewLoginView = findViewById(R.id.new_name);
         mNewPassView = findViewById(R.id.new_password);
 
-        mButtonSave = findViewById(R.id.button_save);
+        Button mButtonSave = findViewById(R.id.button_save);
         mButtonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                attemptUpdate();
             }
         });
 
@@ -219,61 +233,89 @@ public class ActivityLogin extends AppCompatActivity {
     private void clearState() {
         mLoginView.setText("");
         mLoginView.setError(null);
+
         mPasswordView.setText("");
         mPasswordView.setError(null);
+
+        mNewLoginView.setError(null);
+        mNewLoginView.setText("");
+
+        mNewPassView.setError(null);
+        mNewPassView.setText("");
     }
 
     private void attemptLogin() {
-        String user = mLoginView.getText().toString();
-        String password = mPasswordView.getText().toString();
+            if (mProgressView.getVisibility() == View.VISIBLE) return;
 
-        if (check(user, password)) {
+            mLoginView.setError(null);
+            mPasswordView.setError(null);
+
+            boolean cancel = false;
+            View focusView = null;
+
+            if (!TextUtils.isEmpty(mPasswordView.getText().toString()) && !isPasswordValid(mPasswordView)) {
+                mPasswordView.setError(getString(R.string.error_invalid_password));
+                focusView = mPasswordView;
+                cancel = true;
+            }
+
+            if (TextUtils.isEmpty(mLoginView.getText().toString())) {
+                mLoginView.setError(getString(R.string.error_field_required));
+                focusView = mLoginView;
+                cancel = true;
+            } else if (!isLoginValid(mLoginView)) {
+                mLoginView.setError(getString(R.string.error_invalid_login));
+                focusView = mLoginView;
+                cancel = true;
+            }
+
+            if (cancel) {
+                focusView.requestFocus();
+            } else {
+                showProgress(true);
+                new FirebaseController(URL_AUTH, h).login(
+                        mLoginView.getText().toString(),
+                        mPasswordView.getText().toString(),
+                        !signInState);
+            }
+    }
+
+    private void attemptUpdate(){
+
+        if (!TextUtils.isEmpty(mNewPassView.getText().toString()) && !isPasswordValid(mNewPassView)) {
             showProgress(true);
-            new FirebaseController(URL_AUTH, h).login(user, password, !signInState);
+            waitUpdate++;
+            String password = mNewPassView.getText().toString();
+            String idToken = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getIdToken();
+            new FirebaseController(ActivityMain.URL_AUTH, h).updatePass(password,idToken);
+        } else if (!TextUtils.isEmpty(mNewPassView.getText().toString())){
+            mNewPassView.setError(getString(R.string.error_invalid_password));
+            mNewPassView.requestFocus();
+        }
+
+        if (!isLoginValid(mNewLoginView)) {
+            mNewLoginView.setError(getString(R.string.error_invalid_login));
+            mNewLoginView.requestFocus();
+        } else {
+             showProgress(true);
+             waitUpdate++;
+             String username = mNewLoginView.getText().toString();
+             String idToken = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getIdToken();
+             String refresh = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getRefreshToken();
+             String uid = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUid();
+             new FirebaseController(ActivityMain.URL_AUTH, h).updateName(new Auth(username, uid, idToken, refresh));
         }
     }
 
-    private boolean check(String user, String password) {
-        if (mProgressView.getVisibility() == View.VISIBLE) {
-            return false;
-        }
 
-        mLoginView.setError(null);
-        mPasswordView.setError(null);
-
-        boolean cancel = false;
-        View focusView = null;
-
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
-            mPasswordView.setError(getString(R.string.error_invalid_password));
-            focusView = mPasswordView;
-            cancel = true;
-        }
-
-        if (TextUtils.isEmpty(user)) {
-            mLoginView.setError(getString(R.string.error_field_required));
-            focusView = mLoginView;
-            cancel = true;
-        } else if (!isLoginValid(user)) {
-            mLoginView.setError(getString(R.string.error_invalid_login));
-            focusView = mLoginView;
-            cancel = true;
-        }
-
-        if (cancel) {
-            focusView.requestFocus();
-        }
-        return !cancel;
-    }
-
-    private boolean isLoginValid(String login) {
+    private boolean isLoginValid(EditText loginView) {
         //TODO: Replace this with your own logic
         return true;
     }
 
-    private boolean isPasswordValid(String password) {
+    private boolean isPasswordValid(EditText passView) {
         //TODO: Replace this with your own logic
-        return password.length() > 6;
+        return passView.getText().toString().length() > 6;
     }
 
     private void showProgress(final boolean show) {
@@ -311,6 +353,7 @@ public class ActivityLogin extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.back:
+                clearState();
                 setResult(RESULT_OK,  getIntent());
                 finish();
                 return true;
@@ -322,6 +365,7 @@ public class ActivityLogin extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        clearState();
         setResult(RESULT_OK, getIntent());
         finish();
     }

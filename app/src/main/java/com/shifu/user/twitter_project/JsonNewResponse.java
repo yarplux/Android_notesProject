@@ -7,7 +7,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.List;
 
-public class JsonUpdateAuthResponse {
+public class JsonNewResponse {
 
     @SerializedName("kind")
     @Expose
@@ -21,21 +21,13 @@ public class JsonUpdateAuthResponse {
     @Expose
     private String email;
 
-    @SerializedName("displayName")
-    @Expose
-    private String displayName;
-
-    @SerializedName("photoUrl")
-    @Expose
-    private String photoUrl;
-
     @SerializedName("passwordHash")
     @Expose
     private String passwordHash;
 
     @SerializedName("providerUserInfo")
     @Expose
-    private List<JsonUpdateAuthResponseInner> providerUserInfo = null;
+    private List<JsonNewResponseInner> providerUserInfo = null;
 
     @SerializedName("idToken")
     @Expose
@@ -61,19 +53,11 @@ public class JsonUpdateAuthResponse {
         return email;
     }
 
-    public String getName() {
-        return displayName;
-    }
-
-    public String getPhotoUrl() {
-        return photoUrl;
-    }
-
     public String getPasswordHash() {
         return passwordHash;
     }
 
-    public List<JsonUpdateAuthResponseInner> getProviderUserInfo() {
+    public List<JsonNewResponseInner> getProviderUserInfo() {
         return providerUserInfo;
     }
 
@@ -95,8 +79,6 @@ public class JsonUpdateAuthResponse {
                 .append("kind", kind)
                 .append("localId", localId)
                 .append("email", email)
-                .append("displayName", displayName)
-                .append("photoUrl", photoUrl)
                 .append("passwordHash", passwordHash)
                 .append("providerUserInfo", providerUserInfo)
                 .append("idToken", idToken)

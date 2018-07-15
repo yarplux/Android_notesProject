@@ -1,6 +1,7 @@
 package com.shifu.user.twitter_project;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import io.realm.RealmRecyclerViewAdapter;
 public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAdapter.ViewHolder> {
 
     private final static String date_format = "HH:mm:ss dd.MM.yyyy";
+    private static String username;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private  TextView text, date, author;
@@ -34,6 +36,8 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAd
     RealmRVAdapter(OrderedRealmCollection<Messages> data) {
         super(data, true);
         setHasStableIds(true);
+        username = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUsername();
+        Log.d("RA", "Set username:"+username);
     }
 
     @Override
@@ -50,7 +54,7 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAd
         viewHolder.text.setText(obj.getText());
         viewHolder.date.setText(new SimpleDateFormat(date_format, Locale.US).format(new Date(obj.getDate())));
         if (obj.getRetwitted() == null || obj.getRetwitted().equals("")) {
-            viewHolder.author.setText(obj.getUsername());
+            viewHolder.author.setText(username);
         } //else {
 //            viewHolder.author.setText(FragmentList.activity.getResources()
 //                            .getString(R.string.retwitUid, ""));

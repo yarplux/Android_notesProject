@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import java.util.Date;
 
@@ -47,6 +46,8 @@ public class ActivityMain extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.d("Main", "Created");
+
         h = new Handler(new Handler.Callback() {
             String TAG = "H.Main";
 
@@ -57,7 +58,6 @@ public class ActivityMain extends AppCompatActivity {
                     Log.d(TAG, "Event:"+msg.obj);
                     switch((String) msg.obj) {
                         case "RC.addMsgs":
-                            mAdapter =  new RealmRVAdapter(rc.getBase(Messages.class, "date"));
                             mAdapter.notifyDataSetChanged();
                             break;
 
@@ -83,7 +83,7 @@ public class ActivityMain extends AppCompatActivity {
         mAdapter =  new RealmRVAdapter(rc.getBase(Messages.class, "date"));
 
         if(rc.getSize(MessagesAuthor.class) >0) {
-            Log.d("LOGIN STATE:", "true");
+            Log.d("LOGIN STATE:", rc.getItem(MessagesAuthor.class, null, null).getUsername());
             msgFragment = new FragmentList();
             getSupportFragmentManager()
                     .beginTransaction()
@@ -154,18 +154,25 @@ public class ActivityMain extends AppCompatActivity {
 //                    break;
 
                 case LOGIN:
-                    mAdapter =  new RealmRVAdapter(rc.getBase(Messages.class, "date"));
-                    mAdapter.notifyDataSetChanged();
+                    // TODO нужен ли?
+//                    mAdapter =  new RealmRVAdapter(rc.getBase(Messages.class, "date"));
+//                    mAdapter.notifyDataSetChanged();
                     menuMain.findItem(R.id.menu_add).setVisible(rc.getSize(MessagesAuthor.class) > 0);
                     break;
 
             }
         }
     }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d("Main", "Stopped");
+    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.d("Main", "Destroed");
         rc.destroy();
         rc=null;
     }

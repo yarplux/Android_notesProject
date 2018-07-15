@@ -151,6 +151,24 @@ public class RealmController {
      * UPDATE DATA FUNCTIONS _______________________________________________________________________
     */
 
+    public void changeUserName(final Auth auth, final Handler h) {
+        final String TAG = "RC.changeUserName";
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+//                MessagesAuthor item = realm.where(MessagesAuthor.class).equalTo(MessagesAuthor.FIELD_ID, uid).findFirst();
+//                item.setUsername(name);
+                realm.where(MessagesAuthor.class).findAll().deleteAllFromRealm();
+                MessagesAuthor item = realm.createObject(MessagesAuthor.class, auth.getUid());
+                item.setUsername(auth.getUsername());
+                item.setIdToken(auth.getIdToken());
+                item.setRefreshToken(auth.getRefresh());
+
+                h.sendMessage(Message.obtain(h, 7, auth.getUid()));
+            }
+        });
+    }
+
     public void changeUser(final Auth auth, final Handler h) {
         final String TAG = "RC.changeUser";
         realm.executeTransactionAsync(new Realm.Transaction() {
@@ -177,6 +195,7 @@ public class RealmController {
                 Log.d(TAG, "From:"+source);
                 switch (source.split("\\.")[1]){
                     case "loadMsgs":
+                        ((Auth) arg).setIdToken(idToken);
                         fc.loadMsgs((Auth) arg);
                         break;
                     case "delMsg":
@@ -186,11 +205,15 @@ public class RealmController {
                         fc.pushMsg((String) arg);
                         break;
                     case "pushUser":
+                        ((Auth) arg).setIdToken(idToken);
                         fc.pushUser((Auth) arg);
                         break;
                     case "updateMsg":
                         fc.updateMsg((String) arg);
                         break;
+                    case "updateName":
+                        ((Auth) arg).setIdToken(idToken);
+                        new FirebaseController(ActivityMain.URL_AUTH, h).updateName((Auth) arg);
                 }
                 h.sendMessage(Message.obtain(h, 1, TAG));
             }
@@ -224,9 +247,10 @@ public class RealmController {
             @Override
             public void execute(@NotNull Realm realm) {
                 realm.where(objClass).findAll().deleteAllFromRealm();
+                h.sendMessage(Message.obtain(h, 1, "RC.clear"));
+
             }
         });
-        h.sendMessage(Message.obtain(h, 1, "RC.clear"));
     }
 
     public <T extends RealmObject> void removeItemById(final Class<T> objClass, final String id, final Handler h) {

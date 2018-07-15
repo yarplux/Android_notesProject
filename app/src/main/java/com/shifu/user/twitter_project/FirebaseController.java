@@ -30,6 +30,7 @@ public class FirebaseController {
     private final static String MAIL_DOMAIN = "@mail.ru";
     private final static String ERROR_TOKEN_EXPIRED = "Auth token is expired";
     private final static String ERROR_TOKEN_INVALID = "Could not parse auth token";
+    private final static String ERROR_TOKEN_OLD = "CREDENTIAL_TOO_OLD_LOGIN_AGAIN";
 
     FirebaseController (String baseUrl, Handler h) {
         Gson gson = new GsonBuilder()
@@ -56,12 +57,12 @@ public class FirebaseController {
             @Override
             public void onResponse(@NotNull Call<JsonLoginResponse> call, @NotNull Response<JsonLoginResponse> response) {
                 if (response.isSuccessful()) {
-                    Log.d(TAG, response.body().toString());
-                    if (newUser) {
-                        updateProfile(user, response.body().getLocalId(), response.body().getIdToken());
-                    } else {
-                        h.sendMessage(Message.obtain(h, 2, new Auth(user, response.body().getLocalId(), response.body().getIdToken(), response.body().getRefreshToken())));
-                    }
+                    Log.d(TAG, "Success:" + response.body().toString() + " New User? " + Boolean.toString(newUser));
+                    h.sendMessage(Message.obtain(h, newUser?3:2, new Auth(
+                            user,
+                            response.body().getLocalId(),
+                            response.body().getIdToken(),
+                            response.body().getRefreshToken())));
                 } else {
                     try {
                         ResponseError(TAG, new JSONObject(response.errorBody().string()));
@@ -78,38 +79,76 @@ public class FirebaseController {
         });
     }
 
-    public void updateProfile(final String username, final String uid, final String idToken) {
+    public void updateName(final Auth auth) {
 
-        final String TAG = "FC.updateProfile";
+        String mail = auth.getUsername()+MAIL_DOMAIN;
+        final String TAG = "FC.updateName";
+        Log.d(TAG, "Mail:"+mail);
         Log.d(TAG, jsonApi
-                .updateProfile("application/json", API_KEY, new JsonUpdateAuthRequest(idToken,username, false))
+                .change("application/json", API_KEY, new JsonNewNameRequest(auth.getIdToken(),mail, false))
                 .request()
                 .toString());
 
-        jsonApi.updateProfile("application/json", API_KEY, new JsonUpdateAuthRequest(idToken,username, false))
-                .enqueue(new Callback<JsonUpdateAuthResponse>() {
+        jsonApi.change("application/json", API_KEY, new JsonNewNameRequest(auth.getIdToken(),mail, false))
+                .enqueue(new Callback<JsonNewResponse>() {
 
             @Override
-            public void onResponse(@NotNull Call<JsonUpdateAuthResponse> call, @NotNull Response<JsonUpdateAuthResponse> response) {
+            public void onResponse(@NotNull Call<JsonNewResponse> call, @NotNull Response<JsonNewResponse> response) {
                 if (response.isSuccessful()) {
                     Log.d(TAG, "Success:" + response.body().toString());
-                    h.sendMessage(Message.obtain(h, 3, new Auth(username, uid, idToken, response.body().getRefreshToken())));
+                    ActivityMain.getRC().changeUserName(auth, h);
                 } else {
                     try {
-                        ResponseError(TAG, new JSONObject(response.errorBody().string()));
+                        JSONObject jObj = new JSONObject(response.errorBody().string().replaceAll("\\\\", ""));
+                        Log.d(TAG, jObj.getString("error"));
+                        if (jObj.getJSONObject("error").getString("message").equals(ERROR_TOKEN_OLD)) {
+                            //refresh(TAG, auth, auth.getRefresh());
+                            h.sendMessage(Message.obtain(h,0,ERROR_TOKEN_OLD));
+                        }
                     } catch (Exception e) {
+                        Log.e(TAG, "Response:"+response.toString());
                         ResponseUnknownError(TAG, e);
                     }
                 }
             }
-
             @Override
-            public void onFailure(@NotNull Call<JsonUpdateAuthResponse> call, @NotNull Throwable t) {
+            public void onFailure(@NotNull Call<JsonNewResponse> call, @NotNull Throwable t) {
                 Failure(TAG, t);
             }
         });
     }
 
+    public void updatePass(final String password, final String idToken) {
+
+        final String TAG = "FC.updatePass";
+        Log.d(TAG, jsonApi
+                .change("application/json", API_KEY, new JsonNewPassRequest(idToken,password, false))
+                .request()
+                .toString());
+
+        jsonApi.change("application/json", API_KEY, new JsonNewPassRequest(idToken,password, false))
+                .enqueue(new Callback<JsonNewResponse>() {
+
+                    @Override
+                    public void onResponse(@NotNull Call<JsonNewResponse> call, @NotNull Response<JsonNewResponse> response) {
+                        if (response.isSuccessful()) {
+                            Log.d(TAG, "Success:" + response.body().toString());
+                            h.sendMessage(Message.obtain(h, 1, TAG));
+                        } else {
+                            try {
+                                ResponseError(TAG, new JSONObject(response.errorBody().string()));
+                            } catch (Exception e) {
+                                ResponseUnknownError(TAG, e);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NotNull Call<JsonNewResponse> call, @NotNull Throwable t) {
+                        Failure(TAG, t);
+                    }
+                });
+    }
 
     private void refresh(final String source, final Object arg, final String refreshToken) {
         Gson gson = new GsonBuilder()
@@ -136,6 +175,7 @@ public class FirebaseController {
                     public void onResponse(@NotNull Call<JsonRefreshResponse> call, @NotNull Response<JsonRefreshResponse> response) {
                         if (response.isSuccessful()) {
                             Log.d(TAG, "Success:" + response.body().toString());
+                            //Log.d(TAG, "NewToken:" + response.body().getIdToken());
 
                             ActivityMain.getRC().refreshUser(
                                     response.body().getIdToken(),
