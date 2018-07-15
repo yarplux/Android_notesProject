@@ -29,11 +29,11 @@ public class ActivityMsg extends AppCompatActivity {
         intent = getIntent();
         switch (intent.getIntExtra("requestCode", ADD)) {
             case ADD:
-                saveButton.setText(R.string.add);
+                saveButton.setText(R.string.action_add);
                 break;
             case EDIT:
                 text.setText(intent.getStringExtra("text"));
-                saveButton.setText(R.string.save);
+                saveButton.setText(R.string.action_save);
                 break;
         }
 
@@ -53,7 +53,7 @@ public class ActivityMsg extends AppCompatActivity {
                     setResult(RESULT_OK, intent);
                     finish();
                 } else {
-                    text.setError(getString(R.string.msg_error));
+                    text.setError(getString(R.string.error_msg_empty));
                     text.requestFocus();
                 }
             }

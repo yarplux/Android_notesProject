@@ -8,7 +8,7 @@ import android.util.Log;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
+
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,8 +33,8 @@ public class RealmController {
         //realm = Realm.getDefaultInstance();
     }
 
-    /*
-    CREATE DATA FUNCTIONS __________________________________________________________________________
+    /**
+     * CREATE DATA FUNCTIONS _______________________________________________________________________
     */
 
     public void addMsgs(final Map<String, JsonMsg> data, final String author, final Handler h) {
@@ -85,8 +85,8 @@ public class RealmController {
         });
     }
 
-    /*
-    READ DATA FUNCTIONS ____________________________________________________________________________
+    /**
+     * READ DATA FUNCTIONS _________________________________________________________________________
      */
 
     public <T extends RealmObject> Long getSize (Class<T> objClass) {
@@ -147,8 +147,8 @@ public class RealmController {
         return item;
     }
 
-    /*
-    UPDATE DATA FUNCTIONS __________________________________________________________________________
+    /**
+     * UPDATE DATA FUNCTIONS _______________________________________________________________________
     */
 
     public void changeUser(final Auth auth, final Handler h) {
@@ -174,9 +174,10 @@ public class RealmController {
                 item.setIdToken(idToken);
                 item.setRefreshToken(refreshToken);
                 FirebaseController fc = new FirebaseController(ActivityMain.URL_DATABASE, h);
-                switch (source.split(".")[1]){
+                Log.d(TAG, "From:"+source);
+                switch (source.split("\\.")[1]){
                     case "loadMsgs":
-                        fc.loadMsgs();
+                        fc.loadMsgs((Auth) arg);
                         break;
                     case "delMsg":
                         fc.delMsg((String) arg);
@@ -213,8 +214,8 @@ public class RealmController {
         });
     }
 
-    /*
-    DELETE DATA FUNCTIONS __________________________________________________________________________
+    /**
+     * DELETE DATA FUNCTIONS _______________________________________________________________________
      */
 
     public <T extends RealmObject> void clear (final Class<T> objClass, final Handler h) {

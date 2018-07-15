@@ -90,7 +90,7 @@ public class ActivityMain extends AppCompatActivity {
                     .add(R.id.container, msgFragment, "START")
                     .commit();
 
-            new FirebaseController(URL_DATABASE, h).loadMsgs();
+            new FirebaseController(URL_DATABASE, h).loadMsgs(new Auth(rc.getItem(MessagesAuthor.class, null, null)));
 
         } else {
             Log.d("LOGIN STATE:", "false");

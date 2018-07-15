@@ -2,7 +2,6 @@ package com.shifu.user.twitter_project;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -15,7 +14,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -31,7 +29,7 @@ public class ActivityLogin extends AppCompatActivity {
     private Integer counter = 0;
 
     // UI references.
-    private AutoCompleteTextView mLoginView;
+    private EditText mLoginView;
     private EditText mPasswordView;
     private Button mLeftButton;
     private Button mRightButton;
@@ -39,7 +37,10 @@ public class ActivityLogin extends AppCompatActivity {
     private View mLoginFormView;
 
     // UI alternative
-    private Button mButton;
+    private Button mButtonLogout;
+    private Button mButtonSave;
+    private EditText mNewLoginView;
+    private EditText mNewPassView;
 
     private boolean signInState = true;
     private boolean login;
@@ -67,6 +68,7 @@ public class ActivityLogin extends AppCompatActivity {
                                 mLeftButton.setText(R.string.action_sign_in);
                                 mRightButton.setText(R.string.action_sign_up_prepare);
                                 signInState=true;
+
                                 login = false;
                                 showProgress(false);
                             }
@@ -78,7 +80,7 @@ public class ActivityLogin extends AppCompatActivity {
                             break;
 
                         case "RC.changeUser":
-                            new FirebaseController(URL_DATABASE, h).loadMsgs();
+                            new FirebaseController(URL_DATABASE, h).loadMsgs(new Auth(rc.getItem(MessagesAuthor.class, null, null)));
                             break;
 
                         default:
@@ -100,7 +102,7 @@ public class ActivityLogin extends AppCompatActivity {
                             break;
 
                         case "EMAIL_NOT_FOUND":
-                            mLoginView.setError(getString(R.string.error_login_noexists));
+                            mLoginView.setError(getString(R.string.error_login_no_exists));
                             mLoginView.requestFocus();
                             break;
 
@@ -120,11 +122,22 @@ public class ActivityLogin extends AppCompatActivity {
 
         login = rc.getSize(MessagesAuthor.class) >0;
 
-        mButton = findViewById(R.id.logout_button);
-        mButton.setOnClickListener(new View.OnClickListener() {
+        mButtonLogout = findViewById(R.id.logout_button);
+        mButtonLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 logout();
+            }
+        });
+
+        mNewLoginView = findViewById(R.id.new_name);
+        mNewPassView = findViewById(R.id.new_password);
+
+        mButtonSave = findViewById(R.id.button_save);
+        mButtonSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
             }
         });
 
@@ -185,6 +198,7 @@ public class ActivityLogin extends AppCompatActivity {
         rc.clear(MessagesAuthor.class, h);
         rc.clear(MessagesUsers.class, h);
         rc.clear(Messages.class, h);
+
     }
 
     private void changeState() {
@@ -207,7 +221,6 @@ public class ActivityLogin extends AppCompatActivity {
         mLoginView.setError(null);
         mPasswordView.setText("");
         mPasswordView.setError(null);
-
     }
 
     private void attemptLogin() {

@@ -7,7 +7,6 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -192,12 +191,12 @@ public class SwipeController extends ItemTouchHelper.Callback {
         RectF leftButton = new RectF(itemView.getLeft(), itemView.getTop(), itemView.getLeft() + leftButtonWidth-20, itemView.getBottom());
         p.setColor(Color.BLUE);
         c.drawRoundRect(leftButton, corners, corners, p);
-        drawText(context.getResources().getText(R.string.edit).toString(), c, leftButton, p);
+        drawText(context.getResources().getText(R.string.action_edit).toString(), c, leftButton, p);
 
         RectF rightButton = new RectF(itemView.getRight() - rightButtonWidth+20, itemView.getTop(), itemView.getRight(), itemView.getBottom());
         p.setColor(Color.RED);
         c.drawRoundRect(rightButton, corners, corners, p);
-        drawText(context.getResources().getText(R.string.delete).toString(), c, rightButton, p);
+        drawText(context.getResources().getText(R.string.action_delete).toString(), c, rightButton, p);
 
         buttonInstance = null;
         if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) {

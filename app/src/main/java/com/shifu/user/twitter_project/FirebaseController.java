@@ -219,10 +219,9 @@ public class FirebaseController {
     }
 
 
-    public void loadMsgs() {
+    public void loadMsgs(final Auth auth) {
         final String TAG = "FC.loadMsgs";
         String FIELD = "\"author\"";
-        final MessagesAuthor auth = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null);
         Log.d(TAG, jsonApi.loadMessages(FIELD, "\""+auth.getUid()+"\"", auth.getIdToken()).request().url().toString());
         jsonApi.loadMessages(FIELD, "\""+auth.getUid()+"\"", auth.getIdToken()).enqueue(new Callback<Map<String, JsonMsg>>() {
             @Override
@@ -236,7 +235,7 @@ public class FirebaseController {
                         JSONObject jObj = new JSONObject(response.errorBody().string().replaceAll("\\\\", ""));
                         Log.d(TAG, jObj.getString("error"));
                         if (jObj.getString("error").equals(ERROR_TOKEN_EXPIRED)) {
-                            refresh(TAG, "", auth.getRefreshToken());
+                            refresh(TAG, auth, auth.getRefresh());
                         }
                     } catch (Exception e) {
                         ResponseUnknownError(TAG, e);

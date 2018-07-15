@@ -19,6 +19,13 @@ class Auth implements Parcelable{
         this.refresh = refresh;
     }
 
+    Auth (MessagesAuthor auth) {
+        this.username = auth.getUsername();
+        this.uid = auth.getUid();
+        this.idToken = auth.getIdToken();
+        this.refresh = auth.getRefreshToken();
+    }
+
     public String getUsername() {
         return username;
     }
