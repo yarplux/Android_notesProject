@@ -3,20 +3,20 @@ package com.shifu.user.twitter_project;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.lang.reflect.Array;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
-class Auth extends Object implements Parcelable{
+class Auth implements Parcelable{
 
     private String username;
     private String uid;
     private String idToken;
+    private String refresh;
 
-    Auth (String username, String uid, String idToken) {
-        super();
-
+    Auth (String username, String uid, String idToken, String refresh) {
         this.username = username;
         this.uid = uid;
         this.idToken = idToken;
+        this.refresh = refresh;
     }
 
     public String getUsername() {
@@ -29,6 +29,16 @@ class Auth extends Object implements Parcelable{
 
     public String getIdToken() {
         return idToken;
+    }
+
+    @Override
+    public String toString(){
+        return new ToStringBuilder(this)
+                .append("uname", username)
+                .append("uid", uid)
+                .append("idToken", idToken)
+                .append("refreshToken", refresh)
+                .toString();
     }
 
     @Override
@@ -59,4 +69,9 @@ class Auth extends Object implements Parcelable{
         uid = tmp[1];
         idToken = tmp[2];
     }
+
+    public String getRefresh() {
+        return refresh;
+    }
+
 }

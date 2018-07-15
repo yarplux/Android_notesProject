@@ -4,7 +4,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-public class JsonItem {
+public class JsonMsg {
 
     @SerializedName("text")
     @Expose
@@ -13,43 +13,35 @@ public class JsonItem {
     @Expose
     private Long date;
 
-    @SerializedName("uid")
+    @SerializedName("author")
     @Expose
-    private String uid;
+    private String author;
 
-    @SerializedName("retwitUid")
+    @SerializedName("retwittted")
     @Expose
-    private String retwitUid;
+    private String retwitted;
 
-    JsonItem(){}
-
-    JsonItem(String text, Long date, String username) {
+    JsonMsg(String text, Long date, String uid) {
         this.text = text;
         this.date = date;
-        this.uid = username;
+        this.author = uid;
+        this.retwitted = "";
     }
 
     public String getText() {
         return text;
     }
 
-    public void setText(String data) {
-        this.text = data;
-    }
-
     public Long getDate() {
         return date;
     }
 
-    public void setDate(Long data) {
-        this.date = data;
-    }
     public String getAuthor() {
-        return uid;
+        return author;
     }
 
     public void setAuthor(String author) {
-        this.uid = author;
+        this.author = author;
     }
 
     @Override
@@ -61,10 +53,10 @@ public class JsonItem {
     }
 
     public String getRetwitUid() {
-        return retwitUid;
+        return retwitted;
     }
 
     public void setRetwitUid(String retwitUid) {
-        this.retwitUid = retwitUid;
+        this.retwitted = retwitUid;
     }
 }

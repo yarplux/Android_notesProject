@@ -2,20 +2,17 @@ package com.shifu.user.twitter_project;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-public class JsonResponse {
-    private String name;
+public class JsonUser {
+    private String uid;
 
-    JsonResponse (String name) {
-        this.name = name;
+    JsonUser (String name, String uid) {
+        this.uid = name +":"+uid;
     }
 
-    public String getName() {
-        return name;
-    }
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .append("name", name)
+                .append("uid", uid)
                 .toString();
     }
 }

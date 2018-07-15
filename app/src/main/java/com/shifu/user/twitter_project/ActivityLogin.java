@@ -21,10 +21,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import static com.shifu.user.twitter_project.ActivityMain.URL_AUTH;
+import static com.shifu.user.twitter_project.ActivityMain.URL_DATABASE;
+
 public class ActivityLogin extends AppCompatActivity {
 
 
     private Handler h;
+    private Integer counter = 0;
 
     // UI references.
     private AutoCompleteTextView mLoginView;
@@ -39,15 +43,82 @@ public class ActivityLogin extends AppCompatActivity {
 
     private boolean signInState = true;
     private boolean login;
-    private ActivityLogin activity;
+
+    private static RealmController rc = ActivityMain.getRC();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        activity = this;
-        login = getIntent().getBooleanExtra("login", false);
+        h = new Handler(new Handler.Callback() {
+            String TAG = "H.Login";
+            @Override
+            public boolean handleMessage(android.os.Message msg) {
+                Log.d(TAG, "Event type:"+Integer.toString(msg.what));
+                if (msg.what == 1) {
+                    Log.d(TAG, "Event:"+msg.obj);
+                    switch((String) msg.obj) {
+                        case "RC.clear":
+                            counter++;
+                            if (counter == 3) {
+                                counter = 0;
+                                clearState();
+                                mLeftButton.setText(R.string.action_sign_in);
+                                mRightButton.setText(R.string.action_sign_up_prepare);
+                                signInState=true;
+                                login = false;
+                                showProgress(false);
+                            }
+                            break;
+
+                        case "RC.addMsgs":
+                            ActivityMain.setRA(new RealmRVAdapter(rc.getBase(Messages.class, "date")));
+                            ActivityMain.getRA().notifyDataSetChanged();
+                            break;
+
+                        case "RC.changeUser":
+                            new FirebaseController(URL_DATABASE, h).loadMsgs();
+                            break;
+
+                        default:
+                            break;
+                    }
+                } else if (msg.what == 2) {
+                    rc.changeUser((Auth) msg.obj, h);
+                    login = true;
+                    showProgress(false);
+                } else if (msg.what == 3) {
+                    new FirebaseController(URL_DATABASE, h).pushUser((Auth)msg.obj);
+                } else if (msg.what == 0){
+                    Log.d(TAG, "Event:"+msg.obj);
+                    showProgress(false);
+                    switch ((String) msg.obj) {
+                        case "EMAIL_EXISTS":
+                            mLoginView.setError(getString(R.string.error_login_exists));
+                            mLoginView.requestFocus();
+                            break;
+
+                        case "EMAIL_NOT_FOUND":
+                            mLoginView.setError(getString(R.string.error_login_noexists));
+                            mLoginView.requestFocus();
+                            break;
+
+                        case "INVALID_PASSWORD":
+                            mPasswordView.setError(getString(R.string.error_incorrect_password));
+                            mPasswordView.requestFocus();
+                            break;
+
+                        default:
+                            Toast.makeText(getApplicationContext(), (String) msg.obj, Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                }
+                return false;
+            }
+        });
+
+        login = rc.getSize(MessagesAuthor.class) >0;
 
         mButton = findViewById(R.id.logout_button);
         mButton.setOnClickListener(new View.OnClickListener() {
@@ -105,71 +176,38 @@ public class ActivityLogin extends AppCompatActivity {
         mLoginFormView.setVisibility(View.VISIBLE);
         mProgressView = findViewById(R.id.login_progress);
 
-        h = new Handler(new Handler.Callback() {
-            @Override
-            public boolean handleMessage(android.os.Message msg) {
-                Log.d("Handler", Integer.toString(msg.what));
-                if (msg.what == 1) {
-                    mLoginView.setError(null);
-                    mPasswordView.setError(null);
-                    mLeftButton.setText(R.string.action_sign_in);
-                    mRightButton.setText(R.string.action_sign_up_prepare);
-                    signInState=true;
-                    login = true;
-                    showProgress(false);
-                    Intent intent = getIntent();
-                    intent.putExtra(Auth.class.getCanonicalName(), (Auth) msg.obj);
-                } else {
-                    showProgress(false);
-                    if (msg.obj.equals("EMAIL_EXISTS")) {
-                        mLoginView.setError(getString(R.string.error_login_exists));
-                        mLoginView.requestFocus();
-                    } else if (msg.obj.equals("EMAIL_NOT_FOUND")) {
-                        mLoginView.setError(getString(R.string.error_login_noexists));
-                        mLoginView.requestFocus();
-                    } else if (msg.obj.equals("INVALID_PASSWORD")) {
-                        mLoginView.setError(getString(R.string.error_incorrect_password));
-                        mLoginView.requestFocus();
-                    } else {
-                        Toast.makeText(getApplicationContext(), (String) msg.obj, Toast.LENGTH_SHORT).show();
-                    }
-                }
-                return false;
-            }
-        });
+
 
     }
 
     private void logout() {
         showProgress(true);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                showProgress(false);
-            }
-        }, 300);
-
-        login = false;
+        rc.clear(MessagesAuthor.class, h);
+        rc.clear(MessagesUsers.class, h);
+        rc.clear(Messages.class, h);
     }
 
     private void changeState() {
         showProgress(true);
-
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 showProgress(false);
             }
         }, 300);
+        clearState();
 
-        if (signInState) {
-            mLeftButton.setText(R.string.action_back);
-            mRightButton.setText(R.string.action_sign_up);
-        } else {
-            mLeftButton.setText(R.string.action_sign_in);
-            mRightButton.setText(R.string.action_sign_up_prepare);
-        }
+        mLeftButton.setText((signInState)?R.string.action_back:R.string.action_sign_in);
+        mRightButton.setText((signInState)?R.string.action_sign_up:R.string.action_sign_up_prepare);
         signInState = !signInState;
+    }
+
+    private void clearState() {
+        mLoginView.setText("");
+        mLoginView.setError(null);
+        mPasswordView.setText("");
+        mPasswordView.setError(null);
+
     }
 
     private void attemptLogin() {
@@ -178,7 +216,7 @@ public class ActivityLogin extends AppCompatActivity {
 
         if (check(user, password)) {
             showProgress(true);
-            new FirebaseController(getIntent().getStringExtra("URL"), h).login(user, password, !signInState);
+            new FirebaseController(URL_AUTH, h).login(user, password, !signInState);
         }
     }
 
@@ -260,9 +298,7 @@ public class ActivityLogin extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.back:
-                Intent intent = getIntent();
-                intent.putExtra("login", login);
-                setResult(RESULT_OK, intent);
+                setResult(RESULT_OK,  getIntent());
                 finish();
                 return true;
 
@@ -273,9 +309,7 @@ public class ActivityLogin extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Intent intent = getIntent();
-        intent.putExtra("login", login);
-        setResult(RESULT_OK, intent);
+        setResult(RESULT_OK, getIntent());
         finish();
     }
 }

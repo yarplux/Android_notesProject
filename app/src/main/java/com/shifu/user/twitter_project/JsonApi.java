@@ -16,32 +16,41 @@ public interface JsonApi {
     String  MESSAGES = "messages";
     String  USERS = "users";
 
+    /**
+     *  Messages actions
+    */
     @GET(MESSAGES+".json")
-    Call<Map<String, JsonItem>> loadMessages(@Query("orderBy") String authorField, @Query("equalTo") String authorName);
+    Call<Map<String, JsonMsg>> loadMessages(@Query("orderBy") String authorField, @Query("equalTo") String authorName, @Query("auth") String idToken);
 
     @POST(MESSAGES+".json")
-    Call<JsonResponse> pushMessage(@Body JsonItem jsonBody);
+    Call<JsonResponse> pushMessage(@Body JsonMsg jsonBody, @Query("auth") String idToken);
 
     @DELETE(MESSAGES+"/{firebase_id}.json")
-    Call<JsonResponse> deleteMessage(@Path("firebase_id") String firebase_id);
+    Call<JsonResponse> deleteMessage(@Path("firebase_id") String firebase_id, @Query("auth") String idToken);
 
     @PUT(MESSAGES+"/{firebase_id}.json")
-    Call<JsonItem> putMessage(@Path("firebase_id") String firebase_id, @Body JsonItem jsonBody);
+    Call<JsonMsg> putMessage(@Path("firebase_id") String firebase_id, @Body JsonMsg jsonBody, @Query("auth") String idToken);
 
-    @GET(USERS+".json")
-    Call<Map<String, JsonResponse>> checkAuthor(@Query("orderBy") String authorField, @Query("equalTo") String authorName);
 
-    @POST(USERS+".json")
-    Call<JsonResponse> pushUser(@Body JsonResponse jsonBody);
-
-    @GET(USERS+".json")
-    Call<Map<String, JsonResponse>> loadUsers();
-
+    /**
+     * Users actions
+    */
     @POST("{action}")
     Call<JsonLoginResponse> login(@Path("action") String action, @Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonLoginRequest request);
 
     @POST("setAccountInfo")
     Call<JsonUpdateAuthResponse> updateProfile(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonUpdateAuthRequest request);
 
+    @PUT(USERS+"/{uid}.json")
+    Call<JsonResponse> pushUser(@Path("uid") String uid, @Body JsonResponse jsonBody, @Query("auth") String idToken);
+
+    @GET(USERS+"/{uid}.json")
+    Call<JsonResponse> getUser(@Path("uid") String uid, @Body JsonResponse jsonBody, @Query("auth") String idToken);
+
+    @GET(USERS+".json")
+    Call<Map<String, JsonResponse>> loadUsers(@Query("auth") String idToken);
+
+    @POST("token")
+    Call<JsonRefreshResponse> refresh(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonRefreshRequest request);
 
 }

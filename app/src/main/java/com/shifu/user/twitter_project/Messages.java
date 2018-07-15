@@ -1,8 +1,6 @@
 package com.shifu.user.twitter_project;
 
-import java.util.UUID;
 import io.realm.annotations.PrimaryKey;
-import io.realm.Realm;
 import io.realm.RealmObject;
 
 public class Messages  extends RealmObject {
@@ -17,17 +15,6 @@ public class Messages  extends RealmObject {
     private String retwitted;
     private String text;
     private Long date;
-
-    static Messages create(Realm realm) {
-        return realm.createObject(Messages.class, UUID.randomUUID().toString());
-    }
-
-    static void delete(Realm realm, String id) {
-        Messages item = realm.where(Messages.class).equalTo(FIELD_ID, id).findFirst();
-        if (item != null) {
-            item.deleteFromRealm();
-        }
-    }
 
     public String getID() {
         return uuid_id;

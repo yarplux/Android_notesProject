@@ -56,11 +56,12 @@ public class JsonUpdateAuthResponse {
     public String getLocalId() {
         return localId;
     }
+
     public String getEmail() {
         return email;
     }
 
-    public String getDisplayName() {
+    public String getName() {
         return displayName;
     }
 

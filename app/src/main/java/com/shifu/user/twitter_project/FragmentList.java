@@ -1,9 +1,9 @@
 package com.shifu.user.twitter_project;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,40 +12,54 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
 
-import io.realm.Realm;
-
 import static android.app.Activity.RESULT_OK;
-import static com.shifu.user.twitter_project.ActivityMain.MESSAGES;
-import static com.shifu.user.twitter_project.ActivityMain.USERS;
-import static com.shifu.user.twitter_project.Messages.FIELD_ID;
 import static com.shifu.user.twitter_project.ActivityMain.EDIT;
+import static com.shifu.user.twitter_project.ActivityMain.URL_DATABASE;
 
 public class FragmentList extends Fragment {
 
-    public static ActivityMain activity;
-    private Realm realm;
-    protected RecyclerView mRecyclerView;
-    protected RealmRVAdapter mAdapter;
-    protected RealmRVAdapterUsers uAdapter;
-    protected RecyclerView.LayoutManager mLayoutManager;
-    FirebaseController firebaseController = null;
+    private static RealmRVAdapter ra;
+    private static RealmController rc;
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        activity = (ActivityMain)getActivity();
-    }
+    private Handler h;
+
+    protected RecyclerView mRecyclerView;
+    protected RecyclerView.LayoutManager mLayoutManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        realm = activity.getRealmDB();
-        firebaseController = activity.getFirebaseController();
-        mAdapter=activity.mAdapter;
-        uAdapter=activity.uAdapter;
+
+        rc = ActivityMain.getRC();
+
+        h = new Handler(new Handler.Callback() {
+            String TAG = "H.List";
+            @Override
+            public boolean handleMessage(android.os.Message msg) {
+                Log.d(TAG, "Event type:"+Integer.toString(msg.what));
+                if (msg.what == 1) {
+                    Log.d(TAG, "Event:"+msg.obj);
+                    switch ((String) msg.obj) {
+                        default:
+                            break;
+                    }
+                } else if (msg.what == 5) {
+                    ra.notifyDataSetChanged();
+                    new FirebaseController(ActivityMain.URL_DATABASE, h).delMsg((String) msg.obj);
+                } else if (msg.what == 6) {
+                    ra.notifyDataSetChanged();
+                    new FirebaseController(URL_DATABASE, h).updateMsg((String) msg.obj);
+                } else if (msg.what == 0) {
+                    Log.d(TAG, "Event:"+msg.obj);
+                    //Toast.makeText(getContext(), (String) msg.obj, Toast.LENGTH_SHORT).show();
+                }
+                return false;
+            }
+        });
     }
 
     @Override
@@ -57,50 +71,40 @@ public class FragmentList extends Fragment {
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        setAdapter();
+        ra = ActivityMain.getRA();
+        mRecyclerView.setAdapter(ra);
+        final SwipeController swipeController = new SwipeController(getActivity(), new SwipeControllerActions() {
+            @Override
+            public void onDelete(final int position) {
+                rc.removeItemById(Messages.class, ra.getItem(position).getID(), h);
+            }
+
+            @Override
+            public void onEdit(final int position) {
+                Intent intent = new Intent(getActivity(), ActivityMsg.class);
+                Messages updateRow = rc.getItem(Messages.class, Messages.FIELD_ID, ra.getItem(position).getID());
+                intent.putExtra("text", updateRow.getText());
+                intent.putExtra("position", position);
+                intent.putExtra("requestCode", EDIT);
+                startActivityForResult(intent, EDIT);
+            }
+        });
+
+
+        ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
+        itemTouchhelper.attachToRecyclerView(mRecyclerView);
+
+        mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+                swipeController.onDraw(c);
+            }
+        });
+
         return rootView;
     }
 
-    public void setAdapter(){
-        Bundle bundle = this.getArguments();
-        if (bundle != null) {
-            int state = bundle.getInt("state", 0);
 
-            if (state == MESSAGES) {
-                mRecyclerView.setAdapter(mAdapter);
-                final SwipeController swipeController = new SwipeController(getActivity(), new SwipeControllerActions() {
-                    @Override
-                    public void onDelete(final int position) {
-                        firebaseController.deleteMessage(position);
-                    }
-
-                    @Override
-                    public void onEdit(final int position) {
-                        Intent intent = new Intent(getActivity(), ActivityMsg.class);
-                        Messages updateRow = realm.where(Messages.class).equalTo(FIELD_ID, mAdapter.getItem(position).getID()).findFirst();
-                        intent.putExtra("text", updateRow.getText());
-                        intent.putExtra("position", position);
-                        intent.putExtra("requestCode", EDIT);
-                        startActivityForResult(intent, EDIT);
-                    }
-                });
-
-
-                ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
-                itemTouchhelper.attachToRecyclerView(mRecyclerView);
-
-                mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
-                    @Override
-                    public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
-                        swipeController.onDraw(c);
-                    }
-                });
-            } else if (state == USERS) {
-                Log.d("Users in local DB:", realm.where(MessagesUsers.class).findAll().toString());
-                mRecyclerView.setAdapter(uAdapter);
-            }
-        }
-    }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
@@ -108,7 +112,7 @@ public class FragmentList extends Fragment {
                 case EDIT:
                     String text = data.getStringExtra("text");
                     Integer position = data.getIntExtra("position", -1);
-                    firebaseController.updateMessage(position, text);
+                    rc.changeMsg(ra.getItem(position).getID(), text, h);
                     break;
             }
         }

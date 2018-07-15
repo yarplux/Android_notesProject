@@ -10,108 +10,94 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
+import android.widget.Toast;
 
 import java.util.Date;
 
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
-
 public class ActivityMain extends AppCompatActivity {
 
-    final static int LOGIN = 3;
-    final static int AUTHOR = 2;
     final static int ADD = 0;
     final static int EDIT = 1;
+    final static int LOGIN = 2;
 
-    final static int MESSAGES = 10;
-    final static int USERS = 11;
+    final static String URL_AUTH = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/";
+    final static String URL_REFRESH = "https://securetoken.googleapis.com/v1/";
+    final static String URL_DATABASE = "https://shifu-ad6cd.firebaseio.com/";
 
-    private final String URL_AUTH = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/";
+    private static RealmRVAdapter mAdapter;
+    private static RealmController rc;
+    private static Menu menuMain;
 
-    private FragmentList msgFragment, userFragment;
-    RealmRVAdapter mAdapter;
-    RealmRVAdapterUsers uAdapter;
-    private Realm realm;
-
-    private FirebaseController firebaseController;
-    private ActivityMain activity = this;
-
-    private boolean loginState;
-    Auth auth=null;
-
-    private String username;
+    private FragmentList msgFragment;
     private Handler h = new Handler();
 
-    private Button itemProfile;
+    static RealmController getRC() {
+        return rc;
+    }
 
+    static RealmRVAdapter getRA() {
+        return  mAdapter;
+    }
+
+    static void setRA(RealmRVAdapter ra) {
+        mAdapter = ra;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        Intent intent = new Intent(this, ActivityMsg.class);
-//        intent.putExtra("requestCode", AUTHOR);
-//        startActivityForResult(intent, AUTHOR);
+        h = new Handler(new Handler.Callback() {
+            String TAG = "H.Main";
 
-//        firebaseController = new FirebaseController(getApplicationContext(), mAdapter);
-//        firebaseController.getToken();
+            @Override
+            public boolean handleMessage(android.os.Message msg) {
+                Log.d(TAG, "Event type:"+Integer.toString(msg.what));
+                if (msg.what == 1) {
+                    Log.d(TAG, "Event:"+msg.obj);
+                    switch((String) msg.obj) {
+                        case "RC.addMsgs":
+                            mAdapter =  new RealmRVAdapter(rc.getBase(Messages.class, "date"));
+                            mAdapter.notifyDataSetChanged();
+                            break;
+
+                        default:
+                            break;
+                    }
+                } else if (msg.what == 4) {
+                    mAdapter.notifyDataSetChanged();
+                    new FirebaseController(URL_DATABASE, h).pushMsg((String) msg.obj);
+                } else if (msg.what == 0) {
+                    Log.d(TAG, "Event:"+msg.obj);
+                    //Toast.makeText(getApplicationContext(), (String) msg.obj, Toast.LENGTH_SHORT).show();
+                }
+
+                return false;
+            }
+        });
 
         Toolbar myToolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
-        Realm.init(this);
-        RealmConfiguration config = new RealmConfiguration.Builder()
-                .deleteRealmIfMigrationNeeded()
-                .build();
-        realm = Realm.getInstance(config);
+        rc = new RealmController(getApplicationContext());
+        mAdapter =  new RealmRVAdapter(rc.getBase(Messages.class, "date"));
 
-        username = "test";
-        loginState = false;
+        if(rc.getSize(MessagesAuthor.class) >0) {
+            Log.d("LOGIN STATE:", "true");
+            msgFragment = new FragmentList();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.container, msgFragment, "START")
+                    .commit();
 
-        Log.d("LOGIN BASE NOTES:", Long.toString(realm.where(MessagesAuthor.class).count()));
+            new FirebaseController(URL_DATABASE, h).loadMsgs();
 
-        mAdapter =  new RealmRVAdapter(realm.where(Messages.class).findAll().sort("date"));
-        uAdapter =  new RealmRVAdapterUsers(realm.where(MessagesUsers.class).findAll().sort("username"));
-
-        RealmController rc = new RealmController(getApplicationContext(), h);
-        rc.changeUser(username);
-
-
-        Bundle bundle = new Bundle();
-        bundle.putInt("state", MESSAGES);
-        msgFragment = new FragmentList();
-        msgFragment.setArguments(bundle);
-        getSupportFragmentManager()
-                .beginTransaction()
-                .add(R.id.container, msgFragment, "START")
-                .commit();
-
-        firebaseController = new FirebaseController(getApplicationContext(), mAdapter);
-        firebaseController.loadMessages(username);
-
-        //realm = Realm.getDefaultInstance();
-
-//        h = new Handler(new Handler.Callback() {
-//            @Override
-//            public boolean handleMessage(android.os.Message msg) {
-//                Log.d("Handler", Integer.toString(msg.what));
-//                    if (msg.what == 1) {
-//                        uAdapter.notifyDataSetChanged();
-//                        Bundle bundle = new Bundle();
-//                        bundle.putInt("state", USERS);
-//                        userFragment = new FragmentList();
-//                        userFragment.setArguments(bundle);
-//                        getSupportFragmentManager()
-//                                .beginTransaction()
-//                                .replace(R.id.container, userFragment, "USERS")
-//                                .addToBackStack(null)
-//                                .commit();
-//                }
-//                return false;
-//            }
-//        });
+        } else {
+            Log.d("LOGIN STATE:", "false");
+            rc.clear(Messages.class, h);
+            rc.clear(MessagesUsers.class, h);
+            rc.clear(MessagesAuthor.class, h);
+        }
 
     }
 
@@ -119,8 +105,12 @@ public class ActivityMain extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
+        menuMain = menu;
+        menuMain.findItem(R.id.menu_add).setVisible(rc.getSize(MessagesAuthor.class) > 0);
         return true;
     }
+
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -140,8 +130,6 @@ public class ActivityMain extends AppCompatActivity {
 
             case R.id.menu_profile:
                 intent = new Intent(this, ActivityLogin.class);
-                intent.putExtra("login", loginState);
-                intent.putExtra("URL", URL_AUTH);
                 intent.putExtra("requestCode", LOGIN);
                 startActivityForResult(intent, LOGIN);
                 return true;
@@ -153,13 +141,12 @@ public class ActivityMain extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //Log.d("myLogs", "requestCode = " + requestCode + ", resultCode = " + resultCode);
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case ADD:
                     String text = data.getStringExtra("text");
-                    firebaseController.pushMessage(text, new Date().getTime(), username);
+                    rc.addMsg(text, new Date().getTime(), h);
                     break;
 
 //                case AUTHOR:
@@ -167,38 +154,20 @@ public class ActivityMain extends AppCompatActivity {
 //                    break;
 
                 case LOGIN:
-                    loginState = data.getBooleanExtra("login", true);
-
-//                    username = data.getStringExtra("username");
-//                    Log.d("Loaded username", username);
-//
-//                    mAdapter =  new RealmRVAdapter(realm.where(Messages.class).findAll().sort("date"));
-//                    uAdapter =  new RealmRVAdapterUsers(realm.where(MessagesUsers.class).findAll().sort("username"));
-//
-//                    Bundle bundle = new Bundle();
-//                    bundle.putInt("state", MESSAGES);
-//                    msgFragment = new FragmentList();
-//                    msgFragment.setArguments(bundle);
-//                    getSupportFragmentManager()
-//                            .beginTransaction()
-//                            .add(R.id.container, msgFragment, "START")
-//                            .commit();
-//
-//                    firebaseController = new FirebaseController(getApplicationContext(), mAdapter);
-//                    firebaseController.loadMessages(username);
-
+                    mAdapter =  new RealmRVAdapter(rc.getBase(Messages.class, "date"));
+                    mAdapter.notifyDataSetChanged();
+                    menuMain.findItem(R.id.menu_add).setVisible(rc.getSize(MessagesAuthor.class) > 0);
                     break;
+
             }
         }
     }
 
-
-    public Realm getRealmDB() {
-        return realm;
-    }
-
-    public FirebaseController getFirebaseController() {
-        return firebaseController;
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        rc.destroy();
+        rc=null;
     }
 
 }
