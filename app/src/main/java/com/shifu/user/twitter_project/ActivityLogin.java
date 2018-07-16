@@ -52,8 +52,6 @@ public class ActivityLogin extends AppCompatActivity {
     private boolean signInState = true;
     private boolean login;
 
-    private int waitUpdate = 0;
-
     private RealmController rc = ActivityMain.getRC();
 
     @Override
@@ -78,13 +76,15 @@ public class ActivityLogin extends AppCompatActivity {
                             showProgress(false);
                             break;
 
-                        case "FC.updatePass":
-                            waitUpdate--;
+                        case "RC.changeToken":
+                            //TODO почему-то не очеищается поле с паролем
+                            mNewPassView.clearComposingText();
                             break;
 
                         case "RC.changeUserName":
+                            mNewLoginView.setText("");
                             Log.d(TAG, "Username now:"+rc.getItem(MessagesAuthor.class, null, null).getUsername());
-                            waitUpdate--;
+                            showProgress(false);
                             break;
 
                         case "RC.changeUser":
@@ -105,11 +105,11 @@ public class ActivityLogin extends AppCompatActivity {
                     login = true;
                     showProgress(false);
                 } else if (msg.what == 0){
+                    msg.what = 0;
                     showProgress(false);
                     String str = Errors.get((String)msg.obj);
                     if (str != null) Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
                 }
-                if (waitUpdate == 0) showProgress(false);
                 return false;
             }
         });
@@ -131,7 +131,8 @@ public class ActivityLogin extends AppCompatActivity {
         mButtonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptUpdate();
+                if (mNewLoginView.getText().length() > 0) attemptUser();
+                if (mNewPassView.getText().length() > 0) attemptPass();
             }
         });
 
@@ -257,25 +258,26 @@ public class ActivityLogin extends AppCompatActivity {
             }
     }
 
-    private void attemptUpdate(){
+    private void attemptPass(){
+        if (isPasswordValid(mNewPassView)) {
+            //TODO доделать оформление ожидания, если будет время
+            //showProgress(true);
 
-        if (!TextUtils.isEmpty(mNewPassView.getText().toString()) && !isPasswordValid(mNewPassView)) {
-            showProgress(true);
-            waitUpdate++;
-            String password = mNewPassView.getText().toString();
-            String idToken = rc.getItem(MessagesAuthor.class, null, null).getIdToken();
-            FirebaseController.updatePass(password,idToken, h);
-        } else if (!TextUtils.isEmpty(mNewPassView.getText().toString())){
+            MessagesAuthor user = rc.getItem(MessagesAuthor.class, null, null);
+            Bundle obj = new Bundle();
+            obj.putString("password", mNewPassView.getText().toString());
+            obj.putString("idToken", user.getIdToken());
+            FirebaseController.updatePass(obj, h);
+        } else {
             mNewPassView.setError(getString(R.string.error_invalid_password));
             mNewPassView.requestFocus();
         }
+    }
 
-        if (!isLoginValid(mNewLoginView)) {
-            mNewLoginView.setError(getString(R.string.error_invalid_login));
-            mNewLoginView.requestFocus();
-        } else {
-             showProgress(true);
-             waitUpdate++;
+    private void attemptUser() {
+        if (isLoginValid(mNewLoginView)) {
+            //TODO доделать оформление ожидания, если будет время
+            //showProgress(true);
 
             MessagesAuthor user = rc.getItem(MessagesAuthor.class, null, null);
             Bundle obj = new Bundle();
@@ -283,10 +285,12 @@ public class ActivityLogin extends AppCompatActivity {
             obj.putString("idToken", user.getIdToken());
 
             FirebaseController.updateName(obj, h);
+        } else {
+            mNewLoginView.setError(getString(R.string.error_invalid_login));
+            mNewLoginView.requestFocus();
         }
+
     }
-
-
     private boolean isLoginValid(EditText loginView) {
         //TODO: validate login
         return true;

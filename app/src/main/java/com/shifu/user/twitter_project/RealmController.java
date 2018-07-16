@@ -188,6 +188,7 @@ public class RealmController {
             public void execute(Realm realm) {
                 MessagesAuthor item = realm.where(MessagesAuthor.class).findFirst();
                 item.setUsername(obj.getString("username"));
+                Log.d(TAG, "Set uname: "+item.getUsername());
                 RealmResults<Messages> msgs = realm.where(Messages.class).findAll().sort("date");
                 ActivityMain.setRA(new RealmRVAdapter(msgs, item.getUsername()));
                 ActivityMain.getRA().notifyDataSetChanged();
@@ -221,6 +222,24 @@ public class RealmController {
 
     /**
      *
+     * @param obj - idToken
+     * @param h - handler
+     */
+    public void changeToken(final Bundle obj, Handler h) {
+        final  String TAG = "RC.changeToken";
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                MessagesAuthor item = realm.where(MessagesAuthor.class).findFirst();
+                item.setIdToken(obj.getString("idToken"));
+                Log.d(TAG, "Success for:"+item.getUsername());
+            }
+        });
+    }
+
+
+    /**
+     *
      * @param obj - username, uid, idToken, refreshToken
      * @param h
      */
@@ -238,19 +257,6 @@ public class RealmController {
         });
     }
 
-    public void setFirebaseID(final String firebaseID, final String uuid, final Handler h) {
-        final String TAG = "RC.setFirebaseID";
-//        realm.executeTransactionAsync(new Realm.Transaction() {
-//            @Override
-//            public void execute(@NotNull Realm realm) {
-//                Messages item = realm.createObject(Messages.class, auth.getUid());
-//                item.setUsername(auth.getUsername());
-//                item.setIdToken(auth.getIdToken());
-//                item.setRefreshToken(auth.getRefresh());
-//                h.sendMessage(Message.obtain(h, 1, TAG));
-//            }
-//        });
-    }
     public void refreshUser(final String source, final Bundle arg, final Handler h) {
         final String TAG = "RC.refreshUser";
         realm.executeTransactionAsync(new Realm.Transaction() {

@@ -142,22 +142,28 @@ public class FirebaseController {
         });
     }
 
-    public static void updatePass(final String password, final String idToken, final Handler h) {
+    /**
+     *
+     * @param obj - password, idToken
+     * @param h - handler
+     */
+    public static void updatePass(final Bundle obj, final Handler h) {
 
         JsonApi jsonApi = init(URL_AUTH);
         final String TAG = "FC.updatePass";
-        Log.d(TAG, jsonApi
-                .change("application/json", API_KEY, new JsonNewPassRequest(idToken,password, false))
-                .request()
-                .toString());
 
-        jsonApi.change("application/json", API_KEY, new JsonNewPassRequest(idToken,password, false))
+        JsonNewPassRequest jRequest = new JsonNewPassRequest(obj.getString("idToken"),obj.getString("password"), false);
+        Log.d(TAG, jsonApi.change("application/json", API_KEY, jRequest).request().toString());
+
+        jsonApi.change("application/json", API_KEY, jRequest)
                 .enqueue(new Callback<JsonNewResponse>() {
 
                     @Override
                     public void onResponse(@NotNull Call<JsonNewResponse> call, @NotNull Response<JsonNewResponse> response) {
                         if (response.isSuccessful()) {
                             Log.d(TAG, "Success:" + response.body().toString());
+                            obj.putString("idToken", response.body().getIdToken());
+                            rc().changeToken(obj, h);
                             h.sendMessage(Message.obtain(h, 1, TAG));
                         } else {
                             try {

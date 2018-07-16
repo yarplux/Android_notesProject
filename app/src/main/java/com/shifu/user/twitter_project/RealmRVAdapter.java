@@ -33,15 +33,10 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAd
         }
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
 
     RealmRVAdapter(OrderedRealmCollection<Messages> data) {
         super(data, true);
         setHasStableIds(true);
-        username = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUsername();
-        Log.d("RA", "Set username:"+username);
     }
 
     RealmRVAdapter(OrderedRealmCollection<Messages> data, String username) {
@@ -65,7 +60,7 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAd
         viewHolder.text.setText(obj.getText());
         viewHolder.date.setText(new SimpleDateFormat(date_format, Locale.US).format(new Date(obj.getDate())));
         if (obj.getRetwitted() == null || obj.getRetwitted().equals("")) {
-            viewHolder.author.setText(username);
+            viewHolder.author.setText(ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUsername());
         } //else {
 //            viewHolder.author.setText(FragmentList.activity.getResources()
 //                            .getString(R.string.retwitUid, ""));
