@@ -86,7 +86,7 @@ public class RealmController {
                 obj.putString("text", text);
                 obj.putLong("date", date);
                 obj.putString("uuid", item.getID());
-                obj.putString("uid", user.getUsername());
+                obj.putString("uid", item.getUsername());
                 obj.putString("idToken", user.getIdToken());
                 obj.putString("refreshToken", user.getRefreshToken());
 
