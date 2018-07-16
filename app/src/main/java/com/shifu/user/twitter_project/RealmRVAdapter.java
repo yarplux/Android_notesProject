@@ -59,12 +59,8 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAd
         viewHolder.data = obj;
         viewHolder.text.setText(obj.getText());
         viewHolder.date.setText(new SimpleDateFormat(date_format, Locale.US).format(new Date(obj.getDate())));
-        if (obj.getRetwitted() == null || obj.getRetwitted().equals("")) {
-            viewHolder.author.setText(ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUsername());
-        } //else {
-//            viewHolder.author.setText(FragmentList.activity.getResources()
-//                            .getString(R.string.retwitUid, ""));
-//        }
+        viewHolder.author.setText(ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUsername());
+
         }
 
     @Override

@@ -3,6 +3,7 @@ package com.shifu.user.twitter_project;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -38,10 +39,9 @@ public class ActivityMain extends AppCompatActivity {
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("MyMark", "activity onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Log.d("Main", "Created");
 
         h = new Handler(new Handler.Callback() {
             String TAG = "H.Main";
@@ -50,6 +50,16 @@ public class ActivityMain extends AppCompatActivity {
             public boolean handleMessage(android.os.Message msg) {
                 Log.d(TAG, "Event type:"+Integer.toString(msg.what));
                 Log.d(TAG, "Event:"+msg.obj);
+                if (msg.what == 1) {
+                    switch ((String)msg.obj) {
+                        case "LOADED": case "RC.clear":
+                            getSupportFragmentManager()
+                                    .beginTransaction()
+                                    .add(R.id.container, new FragmentList(), "START")
+                                    .commit();
+                            break;
+                    }
+                }
                 return false;
             }
         });
@@ -60,13 +70,10 @@ public class ActivityMain extends AppCompatActivity {
         rc = new RealmController(getApplicationContext());
         ra =  new RealmRVAdapter(rc.getBase(Messages.class, "date"));
 
+        final String TAG = "LOADED";
         if(rc.getSize(MessagesAuthor.class) >0) {
-            Log.d("LOGIN STATE:", rc.getItem(MessagesAuthor.class, null, null).getUsername());
-            FragmentList msgFragment = new FragmentList();
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.container, msgFragment, "START")
-                    .commit();
+
+            Log.d(TAG, "State: "+rc.getItem(MessagesAuthor.class, null, null).getUsername());
 
             MessagesAuthor user = rc.getItem(MessagesAuthor.class, null, null);
             Bundle obj = new Bundle();
@@ -76,12 +83,11 @@ public class ActivityMain extends AppCompatActivity {
             obj.putString("refreshToken", user.getRefreshToken());
 
             FirebaseController.loadMsgs(obj,h);
-
+            h.sendMessage(Message.obtain(h, 1, TAG));
         } else {
-            Log.d("LOGIN STATE:", "false");
+            Log.d(TAG, "State: logout");
             rc.clear(h);
         }
-
     }
 
     @Override

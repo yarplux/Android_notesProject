@@ -8,18 +8,18 @@ public class JsonNewNameRequest {
     @Expose
     private String idToken;
 
-    @SerializedName("email")
+    @SerializedName("displayName")
     @Expose
-    private String email;
+    private String displayName;
 
     @SerializedName("returnSecureToken")
     @Expose
     private boolean returnSecureToken;
 
-    JsonNewNameRequest(String idToken, String email, boolean returnSecureToken){
+    JsonNewNameRequest(String idToken, String displayName, boolean returnSecureToken){
         super();
         this.idToken = idToken;
-        this.email = email;
+        this.displayName = displayName;
         this.returnSecureToken = returnSecureToken;
     }
 }

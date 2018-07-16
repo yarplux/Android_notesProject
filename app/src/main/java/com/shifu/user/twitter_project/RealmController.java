@@ -43,7 +43,7 @@ public class RealmController {
      * CREATE DATA FUNCTIONS _______________________________________________________________________
     */
 
-    public void addMsgs(final Map<String, JsonMsg> data, final String author, final Handler h) {
+    public void addMsgs(final Map<String, JsonMsg> data, final Handler h) {
         final String TAG = CLASS_TAG+"addMsgs";
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
@@ -53,14 +53,14 @@ public class RealmController {
                     JsonMsg obj = data.get(key);
                     Messages item = realm.createObject(Messages.class, UUID.randomUUID().toString());
                     item.setText(obj.getText());
+                    Log.d(TAG, "Created text: "+obj.getText());
                     item.setDate(obj.getDate());
-                    item.setUsername(author);
-                    item.setRetwitted(obj.getRetwitUid());
+                    item.setUid(obj.getUid());
                     item.setFirebase_id(key);
                 }
 
                 RealmResults<Messages> msgs = realm.where(Messages.class).findAll().sort("date");
-                ActivityMain.setRA(new RealmRVAdapter(msgs, author));
+                ActivityMain.setRA(new RealmRVAdapter(msgs));
                 ActivityMain.getRA().notifyDataSetChanged();
                 h.sendMessage(Message.obtain(h, 1, TAG));
             }
@@ -76,17 +76,15 @@ public class RealmController {
                 Messages item = realm.createObject(Messages.class, UUID.randomUUID().toString());
                 item.setText(text);
                 item.setDate(date);
-                item.setUsername(user.getUsername());
-                item.setRetwitted(item.getRetwitted());
+                item.setUid(user.getUid());
                 item.setFirebase_id(null);
                 ActivityMain.getRA().notifyDataSetChanged();
 
                 Bundle obj = new Bundle();
-
                 obj.putString("text", text);
                 obj.putLong("date", date);
                 obj.putString("uuid", item.getID());
-                obj.putString("uid", item.getUsername());
+                obj.putString("uid", user.getUid());
                 obj.putString("idToken", user.getIdToken());
                 obj.putString("refreshToken", user.getRefreshToken());
 
@@ -194,7 +192,7 @@ public class RealmController {
                 ActivityMain.getRA().notifyDataSetChanged();
 //                realm.where(MessagesAuthor.class).findAll().deleteAllFromRealm();
 //                MessagesAuthor item = realm.createObject(MessagesAuthor.class, obj.getString("uid"));
-//                item.setUsername(obj.getString("username"));
+//                item.setUid(obj.getString("username"));
 //                item.setIdToken(obj.getString("idToken"));
 //                item.setRefreshToken(obj.getString("refreshToken"));
 

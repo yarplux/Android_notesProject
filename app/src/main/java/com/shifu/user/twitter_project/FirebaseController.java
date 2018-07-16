@@ -119,12 +119,13 @@ public class FirebaseController {
             @Override
             public void onResponse(@NotNull Call<JsonNewResponse> call, @NotNull Response<JsonNewResponse> response) {
                 if (response.isSuccessful()) {
-                    Log.d(TAG, "Success:" + response.body().toString());
+                    Log.d(TAG, "Success");
                     rc().changeUserName(obj, h);
                 } else {
                     try {
                         JSONObject jObj = new JSONObject(response.errorBody().string().replaceAll("\\\\", ""));
                         Log.d(TAG, jObj.getString("error"));
+                        Log.d(TAG, jObj.getJSONObject("error").getString("message"));
                         if (jObj.getJSONObject("error").getString("message").equals(ERROR_TOKEN_OLD)) {
                             //refresh(TAG, obj, obj.getRefresh());
                             h.sendMessage(Message.obtain(h,0,ERROR_TOKEN_OLD));
@@ -138,6 +139,8 @@ public class FirebaseController {
             @Override
             public void onFailure(@NotNull Call<JsonNewResponse> call, @NotNull Throwable t) {
                 Log.e(TAG, "Failure: "+t.toString());
+                Log.e(TAG, Boolean.toString(t.toString().contains("Unable to resolve host")));
+                h.sendMessage(Message.obtain(h, 0, TAG));
             }
         });
     }
@@ -161,8 +164,7 @@ public class FirebaseController {
                     @Override
                     public void onResponse(@NotNull Call<JsonNewResponse> call, @NotNull Response<JsonNewResponse> response) {
                         if (response.isSuccessful()) {
-                            Log.d(TAG, "Success:" + response.body().toString());
-                            obj.putString("idToken", response.body().getIdToken());
+                            Log.d(TAG, "Success");
                             rc().changeToken(obj, h);
                             h.sendMessage(Message.obtain(h, 1, TAG));
                         } else {
@@ -300,15 +302,15 @@ public class FirebaseController {
 
         JsonApi jsonApi = init(URL_DATABASE);
         final String TAG = "FC.loadMsgs";
-        String field = "\"author\"";
+        String field = "\"uid\"";
         String value = "\""+obj.getString("uid")+"\"";
         Log.d(TAG, jsonApi.loadMessages(field, value, obj.getString("idToken")).request().url().toString());
         jsonApi.loadMessages(field, value, obj.getString("idToken")).enqueue(new Callback<Map<String, JsonMsg>>() {
             @Override
             public void onResponse(@NotNull Call<Map<String, JsonMsg>> call, @NotNull Response<Map<String, JsonMsg>> response) {
                 if (response.isSuccessful()) {
-                    Log.d(TAG, "Success: " + response.body().toString());
-                    rc().addMsgs(response.body(), obj.getString("username"), h);
+                    Log.d(TAG, "Success for : " + obj.getString("username") + "\n"+response.body().toString());
+                    rc().addMsgs(response.body(), h);
                     h.sendMessage(Message.obtain(h, 1, TAG));
                 } else {
                     try {

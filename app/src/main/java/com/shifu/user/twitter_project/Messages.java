@@ -11,7 +11,7 @@ public class Messages  extends RealmObject {
     private String uuid_id;
 
     private String firebase_id;
-    private String username;
+    private String uid;
     private String retwitted;
     private String text;
     private Long date;
@@ -37,24 +37,15 @@ public class Messages  extends RealmObject {
     public String getFirebase_id() {
         return firebase_id;
     }
-
     public void setFirebase_id(String firebase_id) {
         this.firebase_id = firebase_id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUid() {
+        return uid;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getRetwitted() {
-        return retwitted;
-    }
-
-    public void setRetwitted(String retwitted) {
-        this.retwitted = retwitted;
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 }

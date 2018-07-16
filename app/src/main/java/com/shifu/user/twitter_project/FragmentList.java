@@ -30,6 +30,7 @@ public class FragmentList extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.d("MyMark", "fragment onCreate");
         super.onCreate(savedInstanceState);
 
         rc = ActivityMain.getRC();
@@ -52,13 +53,12 @@ public class FragmentList extends Fragment {
     public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        Log.d("MyMark", "fragment onCreateView");
         View rootView = inflater.inflate(R.layout.fr_msg_list, container, false);
         mRecyclerView = rootView.findViewById(R.id.recyclerView);
         mLayoutManager = new LinearLayoutManager(getActivity());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-
         ra = ActivityMain.getRA();
-        mRecyclerView.setAdapter(ra);
+
         final SwipeController swipeController = new SwipeController(getActivity(), new SwipeControllerActions() {
             @Override
             public void onDelete(final int position) {
@@ -76,7 +76,6 @@ public class FragmentList extends Fragment {
             }
         });
 
-
         ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
         itemTouchhelper.attachToRecyclerView(mRecyclerView);
 
@@ -88,6 +87,17 @@ public class FragmentList extends Fragment {
         });
 
         return rootView;
+    }
+
+    @Override
+    public void onStart(){
+        Log.d("MyMark", "fragment onCreateView");
+        super.onStart();
+
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setAdapter(ra);
+
+
     }
 
 

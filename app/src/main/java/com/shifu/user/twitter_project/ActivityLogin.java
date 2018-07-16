@@ -78,11 +78,11 @@ public class ActivityLogin extends AppCompatActivity {
 
                         case "RC.changeToken":
                             //TODO почему-то не очеищается поле с паролем
-                            mNewPassView.clearComposingText();
+                            clearState();
                             break;
 
                         case "RC.changeUserName":
-                            mNewLoginView.setText("");
+                            clearState();
                             Log.d(TAG, "Username now:"+rc.getItem(MessagesAuthor.class, null, null).getUsername());
                             showProgress(false);
                             break;
@@ -108,7 +108,10 @@ public class ActivityLogin extends AppCompatActivity {
                     msg.what = 0;
                     showProgress(false);
                     String str = Errors.get((String)msg.obj);
-                    if (str != null) Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
+                    if (str != null) {
+                        Log.d(TAG, "error note:"+str);
+                        Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
+                    }
                 }
                 return false;
             }

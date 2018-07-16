@@ -13,19 +13,14 @@ public class JsonMsg {
     @Expose
     private Long date;
 
-    @SerializedName("author")
+    @SerializedName("uid")
     @Expose
-    private String author;
-
-    @SerializedName("retwittted")
-    @Expose
-    private String retwitted;
+    private String uid;
 
     JsonMsg(String text, Long date, String uid) {
         this.text = text;
         this.date = date;
-        this.author = uid;
-        this.retwitted = "";
+        this.uid = uid;
     }
 
     public String getText() {
@@ -36,12 +31,12 @@ public class JsonMsg {
         return date;
     }
 
-    public String getAuthor() {
-        return author;
+    public String getUid() {
+        return uid;
     }
 
-    public void setAuthor(String author) {
-        this.author = author;
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     @Override
@@ -50,13 +45,5 @@ public class JsonMsg {
                 .append("text", text)
                 .append("date", date)
                 .toString();
-    }
-
-    public String getRetwitUid() {
-        return retwitted;
-    }
-
-    public void setRetwitUid(String retwitUid) {
-        this.retwitted = retwitUid;
     }
 }
