@@ -19,7 +19,7 @@ import io.realm.RealmRecyclerViewAdapter;
 public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAdapter.ViewHolder> {
 
     private final static String date_format = "HH:mm:ss dd.MM.yyyy";
-    private static String username;
+    private String username;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private  TextView text, date, author;
@@ -33,10 +33,21 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAd
         }
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     RealmRVAdapter(OrderedRealmCollection<Messages> data) {
         super(data, true);
         setHasStableIds(true);
         username = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUsername();
+        Log.d("RA", "Set username:"+username);
+    }
+
+    RealmRVAdapter(OrderedRealmCollection<Messages> data, String username) {
+        super(data, true);
+        setHasStableIds(true);
+        this.username = username;
         Log.d("RA", "Set username:"+username);
     }
 

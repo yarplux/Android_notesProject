@@ -1,5 +1,6 @@
 package com.shifu.user.twitter_project;
 
+import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 import android.os.Handler;
@@ -8,11 +9,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Map;
 
-
+import okhttp3.Request;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -22,17 +24,19 @@ import retrofit2.Callback;
 
 public class FirebaseController {
 
-    private Handler h;
-    private JsonApi jsonApi;
-
+    private final static String URL_AUTH = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/";
+    private final static String URL_REFRESH = "https://securetoken.googleapis.com/v1/";
+    private final static String URL_DATABASE = "https://shifu-ad6cd.firebaseio.com/";
 
     private final static String API_KEY = "AIzaSyAfOcB4p-ewv5LQhtNGRRlcg3_S8Iip-CY";
     private final static String MAIL_DOMAIN = "@mail.ru";
+
     private final static String ERROR_TOKEN_EXPIRED = "Auth token is expired";
-    private final static String ERROR_TOKEN_INVALID = "Could not parse auth token";
     private final static String ERROR_TOKEN_OLD = "CREDENTIAL_TOO_OLD_LOGIN_AGAIN";
 
-    FirebaseController (String baseUrl, Handler h) {
+    private final static String CLASS_TAG = "FC.";
+
+    private static JsonApi init(String baseUrl) {
         Gson gson = new GsonBuilder()
                 .setLenient()
                 .create();
@@ -42,84 +46,105 @@ public class FirebaseController {
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
-        jsonApi = retrofit.create(JsonApi.class);
-        this.h = h;
+        return retrofit.create(JsonApi.class);
     }
 
-    public void login(final String user, String pass, final Boolean newUser) {
+    private static RealmController rc() {
+        return ActivityMain.getRC();
+    }
 
+    public static void login(final String user, String pass, final Boolean newUser, final Handler h) {
+
+        JsonApi jsonApi = init(URL_AUTH);
         String mail = user+MAIL_DOMAIN;
         String action = (newUser)?"signupNewUser":"verifyPassword";
-        final String TAG = "FC.login";
 
-        Log.d(TAG, jsonApi.login(action, "application/json", API_KEY, new JsonLoginRequest(mail,pass)).request().toString());
+        final String TAG = CLASS_TAG+"login";
+
+        final Request request = jsonApi.login(action, "application/json", API_KEY, new JsonLoginRequest(mail,pass)).request();
+        Log.d(TAG, "URL:"+request.url().toString());
+        Log.d(TAG, "Request:"+request.body().toString());
+
         jsonApi.login(action,"application/json", API_KEY, new JsonLoginRequest(mail,pass)).enqueue(new Callback<JsonLoginResponse>() {
             @Override
             public void onResponse(@NotNull Call<JsonLoginResponse> call, @NotNull Response<JsonLoginResponse> response) {
                 if (response.isSuccessful()) {
                     Log.d(TAG, "Success:" + response.body().toString() + " New User? " + Boolean.toString(newUser));
-                    h.sendMessage(Message.obtain(h, newUser?3:2, new Auth(
-                            user,
-                            response.body().getLocalId(),
-                            response.body().getIdToken(),
-                            response.body().getRefreshToken())));
+
+                    Bundle obj = new Bundle();
+                    obj.putString("username", user);
+                    obj.putString("uid", response.body().getLocalId());
+                    obj.putString("idToken", response.body().getIdToken());
+                    obj.putString("refreshToken", response.body().getRefreshToken());
+
+                    if (newUser) {
+                        FirebaseController.pushUser(obj, h);
+                    } else {
+                        rc().changeUser(obj, h);
+                        h.sendMessage(Message.obtain(h, 2, TAG));
+                    }
                 } else {
                     try {
-                        ResponseError(TAG, new JSONObject(response.errorBody().string()));
+                        ResponseError(TAG, response.errorBody().string(), h);
                     } catch (Exception e) {
-                        ResponseUnknownError(TAG, e);
+                        Log.e(TAG, "Exception: "+e.toString());
                     }
                 }
             }
 
             @Override
             public void onFailure(@NotNull Call<JsonLoginResponse> call, @NotNull Throwable t) {
-                Failure(TAG, t);
+                Log.e(TAG, "Failure: "+t.toString());
             }
         });
     }
 
-    public void updateName(final Auth auth) {
+    /**
+     *
+     * @param obj - username, idToken
+     * @param h - handler
+     */
+    public static void updateName(final Bundle obj, final Handler h) {
 
-        String mail = auth.getUsername()+MAIL_DOMAIN;
+        JsonApi jsonApi = init(URL_AUTH);
+        String mail = obj.getString("username")+MAIL_DOMAIN;
         final String TAG = "FC.updateName";
-        Log.d(TAG, "Mail:"+mail);
-        Log.d(TAG, jsonApi
-                .change("application/json", API_KEY, new JsonNewNameRequest(auth.getIdToken(),mail, false))
-                .request()
-                .toString());
 
-        jsonApi.change("application/json", API_KEY, new JsonNewNameRequest(auth.getIdToken(),mail, false))
+        JsonNewNameRequest jRequest = new JsonNewNameRequest(obj.getString("idToken"),mail, false);
+
+        Log.d(TAG, jsonApi.change("application/json", API_KEY, jRequest).request().toString());
+        jsonApi.change("application/json", API_KEY, jRequest)
                 .enqueue(new Callback<JsonNewResponse>() {
 
             @Override
             public void onResponse(@NotNull Call<JsonNewResponse> call, @NotNull Response<JsonNewResponse> response) {
                 if (response.isSuccessful()) {
                     Log.d(TAG, "Success:" + response.body().toString());
-                    ActivityMain.getRC().changeUserName(auth, h);
+                    rc().changeUserName(obj, h);
                 } else {
                     try {
                         JSONObject jObj = new JSONObject(response.errorBody().string().replaceAll("\\\\", ""));
                         Log.d(TAG, jObj.getString("error"));
                         if (jObj.getJSONObject("error").getString("message").equals(ERROR_TOKEN_OLD)) {
-                            //refresh(TAG, auth, auth.getRefresh());
+                            //refresh(TAG, obj, obj.getRefresh());
                             h.sendMessage(Message.obtain(h,0,ERROR_TOKEN_OLD));
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Response:"+response.toString());
-                        ResponseUnknownError(TAG, e);
+                        Log.e(TAG, "Exception: "+e.toString());
                     }
                 }
             }
             @Override
             public void onFailure(@NotNull Call<JsonNewResponse> call, @NotNull Throwable t) {
-                Failure(TAG, t);
+                Log.e(TAG, "Failure: "+t.toString());
             }
         });
     }
 
-    public void updatePass(final String password, final String idToken) {
+    public static void updatePass(final String password, final String idToken, final Handler h) {
 
+        JsonApi jsonApi = init(URL_AUTH);
         final String TAG = "FC.updatePass";
         Log.d(TAG, jsonApi
                 .change("application/json", API_KEY, new JsonNewPassRequest(idToken,password, false))
@@ -136,39 +161,37 @@ public class FirebaseController {
                             h.sendMessage(Message.obtain(h, 1, TAG));
                         } else {
                             try {
-                                ResponseError(TAG, new JSONObject(response.errorBody().string()));
+                                ResponseError(TAG, response.errorBody().string(), h);
                             } catch (Exception e) {
-                                ResponseUnknownError(TAG, e);
+                                Log.e(TAG, "Exception: "+e.toString());
                             }
                         }
                     }
 
                     @Override
                     public void onFailure(@NotNull Call<JsonNewResponse> call, @NotNull Throwable t) {
-                        Failure(TAG, t);
+                        Log.e(TAG, "Failure: "+t.toString());
                     }
                 });
     }
 
-    private void refresh(final String source, final Object arg, final String refreshToken) {
-        Gson gson = new GsonBuilder()
-                .setLenient()
-                .create();
+    /**
+     *
+     * @param source - Calling function name
+     * @param arg - refreshToken + function args
+     * @param h - handler
+     */
+    private static void refresh(final String source, final Bundle arg, final Handler h) {
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(ActivityMain.URL_REFRESH)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build();
-
-        JsonApi jsonApi = retrofit.create(JsonApi.class);
+        JsonApi jsonApi = init(URL_REFRESH);
 
         final String TAG = "FC.refresh";
         Log.d(TAG, jsonApi
-                .refresh("application/json", API_KEY, new JsonRefreshRequest(refreshToken))
+                .refresh("application/json", API_KEY, new JsonRefreshRequest(arg.getString("refreshToken")))
                 .request()
                 .toString());
 
-        jsonApi.refresh("application/json", API_KEY, new JsonRefreshRequest(refreshToken))
+        jsonApi.refresh("application/json", API_KEY, new JsonRefreshRequest(arg.getString("refreshToken")))
                 .enqueue(new Callback<JsonRefreshResponse>() {
 
                     @Override
@@ -177,156 +200,182 @@ public class FirebaseController {
                             Log.d(TAG, "Success:" + response.body().toString());
                             //Log.d(TAG, "NewToken:" + response.body().getIdToken());
 
-                            ActivityMain.getRC().refreshUser(
-                                    response.body().getIdToken(),
-                                    response.body().getRefreshToken(),
-                                    source,
-                                    arg,
-                                    h);
+                            arg.putString("idToken", response.body().getIdToken());
+                            arg.putString("refreshToken", response.body().getRefreshToken());
+                            rc().refreshUser(source, arg, h);
                         } else {
                             try {
-                                String jStr = response.errorBody().string();
-                                Log.d(TAG, jStr);
-                                jStr = jStr.replaceAll("\\\\", "");
-                                JSONObject jObj = new JSONObject(jStr);
-
+                                Log.d(TAG, response.errorBody().string());
                             } catch (Exception e) {
-                                ResponseUnknownError(TAG, e);
+                                Log.e(TAG, "Exception: "+e.toString());
                             }
                         }
                     }
 
                     @Override
                     public void onFailure(@NotNull Call<JsonRefreshResponse> call, @NotNull Throwable t) {
-                        Failure(TAG, t);
+                        Log.e(TAG, "Failure: "+t.toString());
                     }
                 });
     }
 
-    // TODO: при подключении учесть создание событий в handler и обработку в функции, куда передаются ошибки
-    public void loadUsers(final Auth auth) {
-        final String TAG = "FC.loadUsers";
-        Log.d(TAG,  jsonApi.loadUsers(auth.getIdToken()).request().toString());
-        jsonApi.loadUsers(auth.getIdToken()).enqueue(new Callback<Map<String, JsonResponse>>() {
-            @Override
-            public void onResponse(@NotNull Call<Map<String, JsonResponse>> call, @NotNull Response<Map<String, JsonResponse>> response) {
-                if (response.isSuccessful()) {
-                    Log.d(TAG+" Success!", response.body().toString());
-                    Map<String, JsonResponse> data = response.body();
-                    data.remove(auth.getUid());
-                    ActivityMain.getRC().addUsers(data, h);
-                } else {
-                    Log.e(TAG+" Err", response.toString());
-                    h.sendMessage(Message.obtain(h, 0, response.errorBody().toString()));
-                }
-            }
+//    // TODO: при подключении учесть создание событий в handler и обработку в функции, куда передаются ошибки
+//    public static void loadUsers(final Auth auth, final Handler h) {
+//
+//        JsonApi jsonApi = init(URL_DATABASE);
+//        final String TAG = "FC.loadUsers";
+//        Log.d(TAG,  jsonApi.loadUsers(auth.getIdToken()).request().toString());
+//        jsonApi.loadUsers(auth.getIdToken()).enqueue(new Callback<Map<String, JsonResponse>>() {
+//            @Override
+//            public void onResponse(@NotNull Call<Map<String, JsonResponse>> call, @NotNull Response<Map<String, JsonResponse>> response) {
+//                if (response.isSuccessful()) {
+//                    Log.d(TAG+" Success!", response.body().toString());
+//                    Map<String, JsonResponse> data = response.body();
+//                    data.remove(auth.getUid());
+//                    rc().addUsers(data, h);
+//                } else {
+//                    Log.e(TAG+" Err", response.toString());
+//                    h.sendMessage(Message.obtain(h, 0, response.errorBody().toString()));
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(@NotNull Call<Map<String, JsonResponse>> call, @NotNull Throwable t) {
+//                Log.e(TAG, "Failure: "+t.toString());
+//            }
+//        });
+//    }
 
-            @Override
-            public void onFailure(@NotNull Call<Map<String, JsonResponse>> call, @NotNull Throwable t) {
-                Failure(TAG, t);
-            }
-        });
-    }
+    /**
+     *
+     * @param obj - uid, username, idToken, refreshToken
+     * @param h - handler
+     */
+    public static void pushUser(final Bundle obj, final Handler h) {
 
-    public void pushUser(final Auth auth) {
+        JsonApi jsonApi = init(URL_DATABASE);
         final String TAG = "FC.pushUser";
-        Log.d(TAG, jsonApi.pushUser(auth.getUid(), new JsonResponse(auth.getUsername()), auth.getIdToken()).request().toString());
-        jsonApi.pushUser(auth.getUid(), new JsonResponse(auth.getUsername()), auth.getIdToken())
+
+        Log.d(TAG, jsonApi.pushUser(obj.getString("uid"), new JsonResponse(obj.getString("username")), obj.getString("idToken")).request().toString());
+        jsonApi.pushUser(obj.getString("uid"), new JsonResponse(obj.getString("username")), obj.getString("idToken"))
                 .enqueue(new Callback<JsonResponse>() {
 
             @Override
             public void onResponse(@NotNull Call<JsonResponse> call, @NotNull Response<JsonResponse> response) {
                 if (response.isSuccessful()) {
-                    Log.d(TAG+" Success", response.body().toString());
-                    h.sendMessage(Message.obtain(h, 2, auth));
+                    Log.d(TAG, "Success: "+response.body().toString());
+                    h.sendMessage(Message.obtain(h, 2, obj));
                 } else {
                     try {
-                        JSONObject jObj = new JSONObject(response.errorBody().string().replaceAll("\\\\", ""));
-                        Log.d(TAG, jObj.getString("error"));
-                        if (jObj.getString("error").equals(ERROR_TOKEN_EXPIRED)) {
-                            refresh(TAG, auth, auth.getRefresh());
+                        String error = new JSONObject(response.errorBody().string().replaceAll("\\\\", "")).getString("error");
+                        Log.d(TAG, "Error: " + error);
+                        if (error.equals(ERROR_TOKEN_EXPIRED)) {
+                            refresh(TAG, obj, h);
                         }
                     } catch (Exception e) {
-                        ResponseUnknownError(TAG, e);
+                        Log.e(TAG, "Exception: "+e.toString());
                     }
                 }
             }
             @Override
             public void onFailure(@NotNull Call<JsonResponse> call, @NotNull Throwable t) {
-                Failure(TAG, t);
+                Log.e(TAG, "Failure: "+t.toString());
             }
         });
     }
 
+    /**
+     *
+     * @param obj - uid, idToken, username, refreshToken
+     * @param h - handler
+     */
+    public static void loadMsgs(final Bundle obj, final Handler h) {
 
-    public void loadMsgs(final Auth auth) {
+        JsonApi jsonApi = init(URL_DATABASE);
         final String TAG = "FC.loadMsgs";
-        String FIELD = "\"author\"";
-        Log.d(TAG, jsonApi.loadMessages(FIELD, "\""+auth.getUid()+"\"", auth.getIdToken()).request().url().toString());
-        jsonApi.loadMessages(FIELD, "\""+auth.getUid()+"\"", auth.getIdToken()).enqueue(new Callback<Map<String, JsonMsg>>() {
+        String field = "\"author\"";
+        String value = "\""+obj.getString("uid")+"\"";
+        Log.d(TAG, jsonApi.loadMessages(field, value, obj.getString("idToken")).request().url().toString());
+        jsonApi.loadMessages(field, value, obj.getString("idToken")).enqueue(new Callback<Map<String, JsonMsg>>() {
             @Override
             public void onResponse(@NotNull Call<Map<String, JsonMsg>> call, @NotNull Response<Map<String, JsonMsg>> response) {
                 if (response.isSuccessful()) {
-                    Log.d(TAG+" Success!", response.body().toString());
-                    ActivityMain.getRC().addMsgs(response.body(), auth.getUsername(), h);
+                    Log.d(TAG, "Success: " + response.body().toString());
+                    rc().addMsgs(response.body(), obj.getString("username"), h);
                     h.sendMessage(Message.obtain(h, 1, TAG));
                 } else {
                     try {
-                        JSONObject jObj = new JSONObject(response.errorBody().string().replaceAll("\\\\", ""));
-                        Log.d(TAG, jObj.getString("error"));
-                        if (jObj.getString("error").equals(ERROR_TOKEN_EXPIRED)) {
-                            refresh(TAG, auth, auth.getRefresh());
+                        String error = new JSONObject(response.errorBody().string().replaceAll("\\\\", "")).getString("error");
+                        Log.d(TAG, error);
+                        if (error.equals(ERROR_TOKEN_EXPIRED)) {
+                            refresh(TAG, obj, h);
                         }
                     } catch (Exception e) {
-                        ResponseUnknownError(TAG, e);
+                        Log.e(TAG, "Exception: "+e.toString());
                     }
                 }
             }
             @Override
             public void onFailure(@NotNull Call<Map<String, JsonMsg>> call, @NotNull Throwable t) {
-                Failure(TAG, t);
+                Log.e(TAG, "Failure: "+t.toString());
             }
         });
     }
 
+    /**
+     *
+     * @param obj - Msg: text, date, uuid; User: uid, idToken, refreshToken
+     * @param h - handler
+     */
+    public static void pushMsg(final Bundle obj, final Handler h) {
 
-    public void pushMsg(final String uuid) {
+        JsonApi jsonApi = init(URL_DATABASE);
         final String TAG = "FC.pushMsg";
-        final MessagesAuthor auth = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null);
-        Messages msg = ActivityMain.getRC().getItem(Messages.class, Messages.FIELD_ID, uuid);
-        Log.d(TAG, jsonApi.pushMessage(new JsonMsg(msg.getText(),msg.getDate(), auth.getUid()), auth.getIdToken()).request().url().toString());
-        jsonApi.pushMessage(new JsonMsg(msg.getText(),msg.getDate(), auth.getUid()), auth.getIdToken()).enqueue(new Callback<JsonResponse>() {
+
+        JsonMsg jsonMsg = new JsonMsg(obj.getString("text"), obj.getLong("date"), obj.getString("uid"));
+        Log.d(TAG, jsonApi.pushMessage(jsonMsg, obj.getString("idToken")).request().url().toString());
+        jsonApi.pushMessage(jsonMsg, obj.getString("idToken")).enqueue(new Callback<JsonResponse>() {
 
             @Override
             public void onResponse(@NotNull Call<JsonResponse> call, @NotNull Response<JsonResponse> response) {
 
                 if (response.isSuccessful()) {
-                    Log.d(TAG+" Success!", response.body().toString());
+                    Log.d(TAG, "Success: "+response.body().toString());
+
+                    obj.putString("firebase_id", response.body().getName());
+                    rc().setMsgFid(obj, h);
+                    h.sendMessage(Message.obtain(h, 8, response.body().getName()));
                 } else {
                     try {
                         JSONObject jObj = new JSONObject(response.errorBody().string().replaceAll("\\\\", ""));
                         Log.d(TAG, jObj.getString("error"));
                         if (jObj.getString("error").equals(ERROR_TOKEN_EXPIRED)) {
-                            refresh(TAG, uuid, auth.getRefreshToken());
+                            refresh(TAG, obj, h);
                         }
                     } catch (Exception e) {
-                        ResponseUnknownError(TAG, e);
+                        Log.e(TAG, "Exception: "+e.toString());
                     }
                 }
             }
 
             @Override
             public void onFailure(@NotNull Call<JsonResponse> call, @NotNull Throwable t) {
-                Failure(TAG, t);
+                Log.e(TAG, "Failure: "+t.toString());
             }
         });
     }
 
-    public void delMsg(final String firebase_id) {
+    /**
+     *
+     * @param obj - Msg: firebase_id; User: idToken, refreshToken
+     * @param h - handler
+     */
+    public static void delMsg(final Bundle obj, final Handler h) {
+
+        JsonApi jsonApi = init(URL_DATABASE);
         final String TAG = "FC.delMsg";
-        final MessagesAuthor auth = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null);
-        Log.d(TAG, jsonApi.deleteMessage(firebase_id, auth.getIdToken()).request().url().toString());
-        jsonApi.deleteMessage(firebase_id,auth.getIdToken())
+        Log.d(TAG, jsonApi.deleteMessage(obj.getString("firebase_id"), obj.getString("idToken")).request().url().toString());
+        jsonApi.deleteMessage(obj.getString("firebase_id"),obj.getString("idToken"))
                 .enqueue(new Callback<JsonResponse>() {
 
             @Override
@@ -338,28 +387,35 @@ public class FirebaseController {
                         JSONObject jObj = new JSONObject(response.errorBody().string().replaceAll("\\\\", ""));
                         h.sendMessage(Message.obtain(h, 0, TAG+":"+jObj.getString("error")));
                         if (jObj.getString("error").equals(ERROR_TOKEN_EXPIRED)) {
-                            refresh(TAG, firebase_id, auth.getRefreshToken());
+                            refresh(TAG, obj, h);
                         }
                     } catch (Exception e) {
-                        ResponseUnknownError(TAG, e);
+                        Log.e(TAG, "Exception: "+e.toString());
                     }
                 }
 
             }
             @Override
             public void onFailure(@NotNull Call<JsonResponse> call, @NotNull Throwable t) {
-                Failure(TAG, t);
+                Log.e(TAG, "Failure: "+t.toString());
             }
         });
 
     }
 
-    public void updateMsg(final String uuid) {
+    /**
+     *
+     * @param obj - Msg: firebase_id, text, date; User: uid, idToken, refreshToken
+     * @param h - handler
+     */
+    public static void updateMsg(final Bundle obj, final Handler h) {
+
+        JsonApi jsonApi = init(URL_DATABASE);
         final String TAG = "FC.updateMsg";
-        final MessagesAuthor auth = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null);
-        Messages msg = ActivityMain.getRC().getItem(Messages.class, Messages.FIELD_ID, uuid);
-        Log.d(TAG,msg.toString());
-        jsonApi.putMessage(msg.getFirebase_id(), new JsonMsg(msg.getText(),msg.getDate(), auth.getUid()), auth.getIdToken())
+        Log.d(TAG,obj.toString());
+
+        JsonMsg jsonMsg = new JsonMsg(obj.getString("text"),obj.getLong("date"), obj.getString("uid"));
+        jsonApi.putMessage(obj.getString("firebase_id"), jsonMsg, obj.getString("idToken"))
                 .enqueue(new Callback<JsonMsg>() {
 
             @Override
@@ -371,38 +427,25 @@ public class FirebaseController {
                         JSONObject jObj = new JSONObject(response.errorBody().string().replaceAll("\\\\", ""));
                         Log.d(TAG, jObj.getString("error"));
                         if (jObj.getString("error").equals(ERROR_TOKEN_EXPIRED)) {
-                            refresh(TAG, uuid, auth.getRefreshToken());
+                            refresh(TAG, obj, h);
                         }
                     } catch (Exception e) {
-                        ResponseUnknownError(TAG, e);
+                        Log.e(TAG, "Exception: "+e.toString());
                     }
                 }
             }
 
             @Override
             public void onFailure(@NotNull Call<JsonMsg> call, @NotNull Throwable t) {
-                Failure(TAG, t);
+                Log.e(TAG, "Failure: "+t.toString());
             }
         });
 
     }
 
-    private void Failure(String tag, @NotNull Throwable t) {
-        Log.e(tag+ " Fail", t.toString());
-        h.sendMessage(Message.obtain(h, 0, t.toString()));
-    }
-
-    private  void ResponseError(String tag, JSONObject jAllErrors) throws Exception {
-            // Мы знаем структуру получаемого JSON.
-            // Нужно ли переделывать этот способ на десериализацию? / конвертацию собственную?
-            JSONObject jObjError = new JSONObject(jAllErrors.get("error").toString());
-            String error = jObjError.getString("message");
-            Log.e(tag+" Err", error);
+    private  static void ResponseError(String TAG, String errorMessage, Handler h) throws JSONException {
+            String error = new JSONObject(errorMessage).getJSONObject("error").getString("message");
+            Log.e(TAG+"Error: ", error);
             h.sendMessage(Message.obtain(h, 0, error));
-    }
-
-    private void ResponseUnknownError(String tag, Exception e) {
-        Log.e(tag+" Exc", e.toString());
-        h.sendMessage(Message.obtain(h, 0, e.toString()));
     }
 }

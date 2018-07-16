@@ -19,14 +19,22 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import static com.shifu.user.twitter_project.ActivityMain.URL_AUTH;
-import static com.shifu.user.twitter_project.ActivityMain.URL_DATABASE;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ActivityLogin extends AppCompatActivity {
 
+    private static final Map<String, String> Errors=new HashMap <>();
+    static
+    {
+        Errors.put("EMAIL_EXISTS", "Такой пользователь уже существует!");
+        Errors.put("EMAIL_NOT_FOUND", "Пользователь не существует!");
+        Errors.put("INVALID_PASSWORD", "Пароль некорректен!");
+        Errors.put("CREDENTIAL_TOO_OLD_LOGIN_AGAIN", "Чтобы изменить параметры вашего профелия, Вам нужно выйти и войти заново");
+    }
+
 
     private Handler h;
-    private Integer counter = 0;
 
     // UI references.
     private EditText mLoginView;
@@ -46,7 +54,7 @@ public class ActivityLogin extends AppCompatActivity {
 
     private int waitUpdate = 0;
 
-    private static RealmController rc = ActivityMain.getRC();
+    private RealmController rc = ActivityMain.getRC();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,21 +66,16 @@ public class ActivityLogin extends AppCompatActivity {
             @Override
             public boolean handleMessage(android.os.Message msg) {
                 Log.d(TAG, "Event type:"+Integer.toString(msg.what));
+                Log.d(TAG, "Event:"+msg.obj);
                 if (msg.what == 1) {
-                    Log.d(TAG, "Event:"+msg.obj);
                     switch((String) msg.obj) {
                         case "RC.clear":
-                            counter++;
-                            if (counter == 3) {
-                                counter = 0;
-                                clearState();
-                                mLeftButton.setText(R.string.action_sign_in);
-                                mRightButton.setText(R.string.action_sign_up_prepare);
-                                signInState=true;
-
-                                login = false;
-                                showProgress(false);
-                            }
+                            clearState();
+                            mLeftButton.setText(R.string.action_sign_in);
+                            mRightButton.setText(R.string.action_sign_up_prepare);
+                            signInState=true;
+                            login = false;
+                            showProgress(false);
                             break;
 
                         case "FC.updatePass":
@@ -80,55 +83,32 @@ public class ActivityLogin extends AppCompatActivity {
                             break;
 
                         case "RC.changeUserName":
-                            Log.d(TAG, "Username now:"+ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUsername());
+                            Log.d(TAG, "Username now:"+rc.getItem(MessagesAuthor.class, null, null).getUsername());
                             waitUpdate--;
-                        case "RC.addMsgs":
-                            ActivityMain.setRA(new RealmRVAdapter(rc.getBase(Messages.class, "date")));
-                            ActivityMain.getRA().notifyDataSetChanged();
                             break;
 
                         case "RC.changeUser":
-                            new FirebaseController(URL_DATABASE, h).loadMsgs(new Auth(rc.getItem(MessagesAuthor.class, null, null)));
+                            MessagesAuthor user = rc.getItem(MessagesAuthor.class, null, null);
+                            Bundle obj = new Bundle();
+                            obj.putString("uid", user.getUid());
+                            obj.putString("username", user.getUsername());
+                            obj.putString("idToken", user.getIdToken());
+                            obj.putString("refreshToken", user.getRefreshToken());
+
+                            FirebaseController.loadMsgs(obj, h);
                             break;
 
                         default:
                             break;
                     }
                 } else if (msg.what == 2) {
-                    rc.changeUser((Auth) msg.obj, h);
                     login = true;
                     showProgress(false);
-                } else if (msg.what == 3) {
-                    new FirebaseController(URL_DATABASE, h).pushUser((Auth)msg.obj);
                 } else if (msg.what == 0){
-                    Log.d(TAG, "Event:"+msg.obj);
                     showProgress(false);
-                    switch ((String) msg.obj) {
-                        case "EMAIL_EXISTS":
-                            mLoginView.setError(getString(R.string.error_login_exists));
-                            mLoginView.requestFocus();
-                            break;
-
-                        case "EMAIL_NOT_FOUND":
-                            mLoginView.setError(getString(R.string.error_login_no_exists));
-                            mLoginView.requestFocus();
-                            break;
-
-                        case "INVALID_PASSWORD":
-                            mPasswordView.setError(getString(R.string.error_incorrect_password));
-                            mPasswordView.requestFocus();
-                            break;
-                        case "CREDENTIAL_TOO_OLD_LOGIN_AGAIN":
-                            Toast.makeText(getApplicationContext(), getString(R.string.error_old_credentials), Toast.LENGTH_SHORT).show();
-                        default:
-                            //Toast.makeText(getApplicationContext(), (String) msg.obj, Toast.LENGTH_SHORT).show();
-                            break;
-                    }
-                } else if (msg.what == 7) {
-                    Log.d(TAG, "Base now:"+ActivityMain.getRC().getSize(MessagesAuthor.class));
-                    Log.d(TAG, "Username now:"+ActivityMain.getRC().getItem(MessagesAuthor.class, MessagesAuthor.FIELD_ID, msg.obj).getUsername());
+                    String str = Errors.get((String)msg.obj);
+                    if (str != null) Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
                 }
-
                 if (waitUpdate == 0) showProgress(false);
                 return false;
             }
@@ -209,10 +189,7 @@ public class ActivityLogin extends AppCompatActivity {
 
     private void logout() {
         showProgress(true);
-        rc.clear(MessagesAuthor.class, h);
-        rc.clear(MessagesUsers.class, h);
-        rc.clear(Messages.class, h);
-
+        rc.clear(h);
     }
 
     private void changeState() {
@@ -250,16 +227,19 @@ public class ActivityLogin extends AppCompatActivity {
             mLoginView.setError(null);
             mPasswordView.setError(null);
 
+            String pass = mPasswordView.getText().toString();
+            String name = mLoginView.getText().toString();
+
             boolean cancel = false;
             View focusView = null;
 
-            if (!TextUtils.isEmpty(mPasswordView.getText().toString()) && !isPasswordValid(mPasswordView)) {
+            if (!TextUtils.isEmpty(pass) && !isPasswordValid(mPasswordView)) {
                 mPasswordView.setError(getString(R.string.error_invalid_password));
                 focusView = mPasswordView;
                 cancel = true;
             }
 
-            if (TextUtils.isEmpty(mLoginView.getText().toString())) {
+            if (TextUtils.isEmpty(name)) {
                 mLoginView.setError(getString(R.string.error_field_required));
                 focusView = mLoginView;
                 cancel = true;
@@ -273,10 +253,7 @@ public class ActivityLogin extends AppCompatActivity {
                 focusView.requestFocus();
             } else {
                 showProgress(true);
-                new FirebaseController(URL_AUTH, h).login(
-                        mLoginView.getText().toString(),
-                        mPasswordView.getText().toString(),
-                        !signInState);
+                FirebaseController.login(name, pass, !signInState, h);
             }
     }
 
@@ -286,8 +263,8 @@ public class ActivityLogin extends AppCompatActivity {
             showProgress(true);
             waitUpdate++;
             String password = mNewPassView.getText().toString();
-            String idToken = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getIdToken();
-            new FirebaseController(ActivityMain.URL_AUTH, h).updatePass(password,idToken);
+            String idToken = rc.getItem(MessagesAuthor.class, null, null).getIdToken();
+            FirebaseController.updatePass(password,idToken, h);
         } else if (!TextUtils.isEmpty(mNewPassView.getText().toString())){
             mNewPassView.setError(getString(R.string.error_invalid_password));
             mNewPassView.requestFocus();
@@ -299,22 +276,24 @@ public class ActivityLogin extends AppCompatActivity {
         } else {
              showProgress(true);
              waitUpdate++;
-             String username = mNewLoginView.getText().toString();
-             String idToken = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getIdToken();
-             String refresh = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getRefreshToken();
-             String uid = ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUid();
-             new FirebaseController(ActivityMain.URL_AUTH, h).updateName(new Auth(username, uid, idToken, refresh));
+
+            MessagesAuthor user = rc.getItem(MessagesAuthor.class, null, null);
+            Bundle obj = new Bundle();
+            obj.putString("username", mNewLoginView.getText().toString());
+            obj.putString("idToken", user.getIdToken());
+
+            FirebaseController.updateName(obj, h);
         }
     }
 
 
     private boolean isLoginValid(EditText loginView) {
-        //TODO: Replace this with your own logic
+        //TODO: validate login
         return true;
     }
 
     private boolean isPasswordValid(EditText passView) {
-        //TODO: Replace this with your own logic
+        //TODO: validate password
         return passView.getText().toString().length() > 6;
     }
 

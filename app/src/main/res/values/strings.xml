@@ -34,11 +34,7 @@
     <string name="action_logout">Выйти</string>
 
     <string name="error_invalid_login">Некорректное имя пользователя!</string>
-    <string name="error_login_exists">Пользователь уже существует!</string>
-    <string name="error_login_no_exists">Пользователь не существует!</string>
     <string name="error_invalid_password">Пароль слишком короткий!</string>
-    <string name="error_incorrect_password">Пароль некорректен!</string>
     <string name="error_field_required">Поле обязательно для заполнения</string>
-    <string name="error_old_credentials">Чтобы изменить параметры вашего профелия, Вам нужно выйти и войти заново</string>
 
 </resources>

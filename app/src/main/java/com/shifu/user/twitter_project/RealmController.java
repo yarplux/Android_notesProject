@@ -1,6 +1,7 @@
 package com.shifu.user.twitter_project;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -19,8 +20,11 @@ import io.realm.RealmResults;
 
 import static com.shifu.user.twitter_project.Messages.FIELD_ID;
 
+import static com.shifu.user.twitter_project.FirebaseController.*;
+
 public class RealmController {
 
+    private final static String CLASS_TAG = "RC.";
     private Realm realm;
     RealmController(Context context) {
         Realm.init(context);
@@ -33,11 +37,14 @@ public class RealmController {
         //realm = Realm.getDefaultInstance();
     }
 
+
+
     /**
      * CREATE DATA FUNCTIONS _______________________________________________________________________
     */
 
     public void addMsgs(final Map<String, JsonMsg> data, final String author, final Handler h) {
+        final String TAG = CLASS_TAG+"addMsgs";
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(@NotNull Realm realm) {
@@ -51,22 +58,40 @@ public class RealmController {
                     item.setRetwitted(obj.getRetwitUid());
                     item.setFirebase_id(key);
                 }
-                h.sendMessage(Message.obtain(h, 1, "RC.addMsgs"));
+
+                RealmResults<Messages> msgs = realm.where(Messages.class).findAll().sort("date");
+                ActivityMain.setRA(new RealmRVAdapter(msgs, author));
+                ActivityMain.getRA().notifyDataSetChanged();
+                h.sendMessage(Message.obtain(h, 1, TAG));
             }
         });
     }
 
     public void addMsg(final String text, final Long date, final Handler h) {
+        final String TAG = CLASS_TAG+"addMsg";
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(@NotNull Realm realm) {
+                MessagesAuthor user = realm.where(MessagesAuthor.class).findFirst();
                 Messages item = realm.createObject(Messages.class, UUID.randomUUID().toString());
                 item.setText(text);
                 item.setDate(date);
-                item.setUsername(realm.where(MessagesAuthor.class).findFirst().getUsername());
+                item.setUsername(user.getUsername());
                 item.setRetwitted(item.getRetwitted());
-                item.setFirebase_id(item.getFirebase_id());
-                h.sendMessage(Message.obtain(h, 4, item.getID()));
+                item.setFirebase_id(null);
+                ActivityMain.getRA().notifyDataSetChanged();
+
+                Bundle obj = new Bundle();
+
+                obj.putString("text", text);
+                obj.putLong("date", date);
+                obj.putString("uuid", item.getID());
+                obj.putString("uid", user.getUsername());
+                obj.putString("idToken", user.getIdToken());
+                obj.putString("refreshToken", user.getRefreshToken());
+
+                FirebaseController.pushMsg(obj, h);
+                h.sendMessage(Message.obtain(h, 1, TAG));
             }
         });
     }
@@ -151,69 +176,104 @@ public class RealmController {
      * UPDATE DATA FUNCTIONS _______________________________________________________________________
     */
 
-    public void changeUserName(final Auth auth, final Handler h) {
+    /**
+     *
+     * @param obj - username, uid, idToken, refreshToken
+     * @param h - handler
+     */
+    public void changeUserName(final Bundle obj, final Handler h) {
         final String TAG = "RC.changeUserName";
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-//                MessagesAuthor item = realm.where(MessagesAuthor.class).equalTo(MessagesAuthor.FIELD_ID, uid).findFirst();
-//                item.setUsername(name);
-                realm.where(MessagesAuthor.class).findAll().deleteAllFromRealm();
-                MessagesAuthor item = realm.createObject(MessagesAuthor.class, auth.getUid());
-                item.setUsername(auth.getUsername());
-                item.setIdToken(auth.getIdToken());
-                item.setRefreshToken(auth.getRefresh());
+                MessagesAuthor item = realm.where(MessagesAuthor.class).findFirst();
+                item.setUsername(obj.getString("username"));
+                RealmResults<Messages> msgs = realm.where(Messages.class).findAll().sort("date");
+                ActivityMain.setRA(new RealmRVAdapter(msgs, item.getUsername()));
+                ActivityMain.getRA().notifyDataSetChanged();
+//                realm.where(MessagesAuthor.class).findAll().deleteAllFromRealm();
+//                MessagesAuthor item = realm.createObject(MessagesAuthor.class, obj.getString("uid"));
+//                item.setUsername(obj.getString("username"));
+//                item.setIdToken(obj.getString("idToken"));
+//                item.setRefreshToken(obj.getString("refreshToken"));
 
-                h.sendMessage(Message.obtain(h, 7, auth.getUid()));
-            }
-        });
-    }
-
-    public void changeUser(final Auth auth, final Handler h) {
-        final String TAG = "RC.changeUser";
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(@NotNull Realm realm) {
-                MessagesAuthor item = realm.createObject(MessagesAuthor.class, auth.getUid());
-                item.setUsername(auth.getUsername());
-                item.setIdToken(auth.getIdToken());
-                item.setRefreshToken(auth.getRefresh());
                 h.sendMessage(Message.obtain(h, 1, TAG));
             }
         });
     }
 
-    public void refreshUser(final String idToken, final String refreshToken, final String source, final Object arg, final Handler h) {
+    /**
+     *
+     * @param obj - Msg: firebase_id, uuid
+     * @param h - handler
+     */
+    public void setMsgFid(final Bundle obj, final Handler h) {
+        final String TAG = "RC.setMsgFid";
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Messages item = realm.where(Messages.class).equalTo(Messages.FIELD_ID, obj.getString("uuid")).findFirst();
+                item.setFirebase_id(obj.getString("firebase_id"));
+                Log.d(TAG, "Success for:"+item.getText());
+            }
+        });
+    }
+
+    /**
+     *
+     * @param obj - username, uid, idToken, refreshToken
+     * @param h
+     */
+    public void changeUser(final Bundle obj, final Handler h) {
+        final String TAG = "RC.changeUser";
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(@NotNull Realm realm) {
+                MessagesAuthor item = realm.createObject(MessagesAuthor.class, obj.getString("uid"));
+                item.setUsername(obj.getString("username"));
+                item.setIdToken(obj.getString("idToken"));
+                item.setRefreshToken(obj.getString("refreshToken"));
+                h.sendMessage(Message.obtain(h, 1, TAG));
+            }
+        });
+    }
+
+    public void setFirebaseID(final String firebaseID, final String uuid, final Handler h) {
+        final String TAG = "RC.setFirebaseID";
+//        realm.executeTransactionAsync(new Realm.Transaction() {
+//            @Override
+//            public void execute(@NotNull Realm realm) {
+//                Messages item = realm.createObject(Messages.class, auth.getUid());
+//                item.setUsername(auth.getUsername());
+//                item.setIdToken(auth.getIdToken());
+//                item.setRefreshToken(auth.getRefresh());
+//                h.sendMessage(Message.obtain(h, 1, TAG));
+//            }
+//        });
+    }
+    public void refreshUser(final String source, final Bundle arg, final Handler h) {
         final String TAG = "RC.refreshUser";
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(@NotNull Realm realm) {
                 MessagesAuthor item = realm.where(MessagesAuthor.class).findFirst();
-                item.setIdToken(idToken);
-                item.setRefreshToken(refreshToken);
-                FirebaseController fc = new FirebaseController(ActivityMain.URL_DATABASE, h);
+                item.setIdToken(arg.getString("idToken"));
+                item.setRefreshToken(arg.getString("refreshToken"));
                 Log.d(TAG, "From:"+source);
                 switch (source.split("\\.")[1]){
-                    case "loadMsgs":
-                        ((Auth) arg).setIdToken(idToken);
-                        fc.loadMsgs((Auth) arg);
+
+                    case "loadMsgs": loadMsgs(arg, h);
                         break;
-                    case "delMsg":
-                        fc.delMsg((String) arg);
+                    case "delMsg": delMsg(arg, h);
                         break;
-                    case "pushMsg":
-                        fc.pushMsg((String) arg);
+                    case "pushMsg": pushMsg(arg, h);
                         break;
-                    case "pushUser":
-                        ((Auth) arg).setIdToken(idToken);
-                        fc.pushUser((Auth) arg);
+                    case "pushUser": pushUser(arg, h);
                         break;
-                    case "updateMsg":
-                        fc.updateMsg((String) arg);
+                    case "updateMsg": updateMsg(arg, h);
                         break;
-                    case "updateName":
-                        ((Auth) arg).setIdToken(idToken);
-                        new FirebaseController(ActivityMain.URL_AUTH, h).updateName((Auth) arg);
+                    case "updateName": updateName(arg, h);
+                        break;
                 }
                 h.sendMessage(Message.obtain(h, 1, TAG));
             }
@@ -225,11 +285,24 @@ public class RealmController {
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(@NotNull Realm realm) {
-                Messages obj = realm.where(Messages.class).equalTo(FIELD_ID, id).findFirst();
+                Messages item = realm.where(Messages.class).equalTo(FIELD_ID, id).findFirst();
+                MessagesAuthor user = realm.where(MessagesAuthor.class).findFirst();
                 try {
-                    obj.setText(text);
-                    h.sendMessage(Message.obtain(h, 1, TAG));
-                    h.sendMessage(Message.obtain(h, 6, id));
+                    item.setText(text);
+                    ActivityMain.getRA().notifyDataSetChanged();
+
+                    Bundle obj = new Bundle();
+                    obj.putString("text", text);
+                    obj.putLong("date", item.getDate());
+                    obj.putString("firebase_id", item.getFirebase_id());
+                    obj.putString("uid", user.getUid());
+                    obj.putString("idToken", user.getIdToken());
+                    obj.putString("refreshToken", user.getRefreshToken());
+
+                    //TODO если будет обработка обрывов связи, то нужно как-то проверить, существует ли это сообщение в базе
+                    if (item.getFirebase_id() != null) {
+                        FirebaseController.updateMsg(obj, h);
+                    }
                 } catch (NullPointerException e) {
                     h.sendMessage(Message.obtain(h, 0, TAG+":"+e.toString()));
                 }
@@ -241,12 +314,13 @@ public class RealmController {
      * DELETE DATA FUNCTIONS _______________________________________________________________________
      */
 
-    public <T extends RealmObject> void clear (final Class<T> objClass, final Handler h) {
-        if (objClass == null) return;
+    public void clear (final Handler h) {
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(@NotNull Realm realm) {
-                realm.where(objClass).findAll().deleteAllFromRealm();
+                realm.where(Messages.class).findAll().deleteAllFromRealm();
+                realm.where(MessagesAuthor.class).findAll().deleteAllFromRealm();
+                realm.where(MessagesUsers.class).findAll().deleteAllFromRealm();
                 h.sendMessage(Message.obtain(h, 1, "RC.clear"));
 
             }
@@ -267,8 +341,19 @@ public class RealmController {
                         if (item instanceof Messages) {
                             firebase_id = ((Messages) item).getFirebase_id();
                         }
+
                         item.deleteFromRealm();
-                        h.sendMessage(Message.obtain(h, 5,   firebase_id));
+                        ActivityMain.getRA().notifyDataSetChanged();
+
+                        //TODO если будет обработка обрывов связи, то нужно как-то проверить, существует ли это сообщение в базе
+                        if (firebase_id != null) {
+                            MessagesAuthor user = realm.where(MessagesAuthor.class).findFirst();
+                            Bundle obj = new Bundle();
+                            obj.putString("firebase_id", firebase_id);
+                            obj.putString("idToken", user.getIdToken());
+                            obj.putString("refreshToken", user.getRefreshToken());
+                            FirebaseController.delMsg(obj, h);
+                        }
                     }
                 } catch (NoSuchFieldException | IllegalAccessException e) {
                     e.printStackTrace();
@@ -278,9 +363,5 @@ public class RealmController {
         });
     }
 
-    protected void destroy() {
-        realm.close();
-        realm = null;
-    }
 
 }

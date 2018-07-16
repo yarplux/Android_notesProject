@@ -12,13 +12,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
 
 import static android.app.Activity.RESULT_OK;
 import static com.shifu.user.twitter_project.ActivityMain.EDIT;
-import static com.shifu.user.twitter_project.ActivityMain.URL_DATABASE;
 
 public class FragmentList extends Fragment {
 
@@ -41,19 +39,7 @@ public class FragmentList extends Fragment {
             @Override
             public boolean handleMessage(android.os.Message msg) {
                 Log.d(TAG, "Event type:"+Integer.toString(msg.what));
-                if (msg.what == 1) {
-                    Log.d(TAG, "Event:"+msg.obj);
-                    switch ((String) msg.obj) {
-                        default:
-                            break;
-                    }
-                } else if (msg.what == 5) {
-                    ra.notifyDataSetChanged();
-                    new FirebaseController(ActivityMain.URL_DATABASE, h).delMsg((String) msg.obj);
-                } else if (msg.what == 6) {
-                    ra.notifyDataSetChanged();
-                    new FirebaseController(URL_DATABASE, h).updateMsg((String) msg.obj);
-                } else if (msg.what == 0) {
+                if (msg.what <= 1) {
                     Log.d(TAG, "Event:"+msg.obj);
                     //Toast.makeText(getContext(), (String) msg.obj, Toast.LENGTH_SHORT).show();
                 }
