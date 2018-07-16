@@ -270,6 +270,7 @@ public class FirebaseController {
             public void onResponse(@NotNull Call<JsonResponse> call, @NotNull Response<JsonResponse> response) {
                 if (response.isSuccessful()) {
                     Log.d(TAG, "Success: "+response.body().toString());
+                    rc().changeUser(obj, h);
                     h.sendMessage(Message.obtain(h, 2, obj));
                 } else {
                     try {
