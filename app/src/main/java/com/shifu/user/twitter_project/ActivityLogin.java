@@ -78,24 +78,10 @@ public class ActivityLogin extends AppCompatActivity {
 
                         case "RC.changeToken":
                             //TODO почему-то не очеищается поле с паролем
-                            clearState();
-                            break;
 
                         case "RC.changeUserName":
                             clearState();
-                            Log.d(TAG, "Username now:"+rc.getItem(MessagesAuthor.class, null, null).getUsername());
                             showProgress(false);
-                            break;
-
-                        case "RC.changeUser":
-                            MessagesAuthor user = rc.getItem(MessagesAuthor.class, null, null);
-                            Bundle obj = new Bundle();
-                            obj.putString("uid", user.getUid());
-                            obj.putString("username", user.getUsername());
-                            obj.putString("idToken", user.getIdToken());
-                            obj.putString("refreshToken", user.getRefreshToken());
-
-                            FirebaseController.loadMsgs(obj, h);
                             break;
 
                         default:

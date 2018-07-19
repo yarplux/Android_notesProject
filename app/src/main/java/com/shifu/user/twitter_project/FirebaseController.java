@@ -29,6 +29,7 @@ public class FirebaseController {
     private final static String URL_DATABASE = "https://shifu-ad6cd.firebaseio.com/";
 
     private final static String API_KEY = "AIzaSyAfOcB4p-ewv5LQhtNGRRlcg3_S8Iip-CY";
+
     private final static String MAIL_DOMAIN = "@mail.ru";
 
     private final static String ERROR_TOKEN_EXPIRED = "Auth token is expired";

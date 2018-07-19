@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">twitter-project</string>
+    <string name="app_name">Свиток воспоминаний</string>
 
     <!-- TO General actions page-->
     <string name="action_save">Сохранить</string>

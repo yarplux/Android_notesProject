@@ -1,5 +1,7 @@
 package com.shifu.user.twitter_project;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
@@ -21,5 +23,13 @@ public class MessagesUsers extends RealmObject {
 
     public String getUid() {
         return uid;
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("uid", uid)
+                .append("username", username)
+                .toString();
     }
 }

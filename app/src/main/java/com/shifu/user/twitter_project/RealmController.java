@@ -246,10 +246,20 @@ public class RealmController {
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(@NotNull Realm realm) {
+                realm.where(MessagesAuthor.class).findAll().deleteAllFromRealm();
                 MessagesAuthor item = realm.createObject(MessagesAuthor.class, obj.getString("uid"));
                 item.setUsername(obj.getString("username"));
                 item.setIdToken(obj.getString("idToken"));
                 item.setRefreshToken(obj.getString("refreshToken"));
+                Log.d(TAG, "Set user: "+item.toString());
+
+                Bundle obj = new Bundle();
+                obj.putString("uid", item.getUid());
+                obj.putString("username", item.getUsername());
+                obj.putString("idToken", item.getIdToken());
+                obj.putString("refreshToken", item.getRefreshToken());
+
+                FirebaseController.loadMsgs(obj, h);
                 h.sendMessage(Message.obtain(h, 1, TAG));
             }
         });

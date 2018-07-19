@@ -1,5 +1,7 @@
 package com.shifu.user.twitter_project;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -49,4 +51,13 @@ public class MessagesAuthor extends RealmObject {
     public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }
-}
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("uid", uid)
+                .append("username", username)
+                .append("idToken", idToken)
+                .append("refreshToken", refreshToken)
+                .toString();
+    }}
