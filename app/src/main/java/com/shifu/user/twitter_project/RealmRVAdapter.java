@@ -65,7 +65,7 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAd
         viewHolder.data = obj;
         viewHolder.text.setText(obj.getText());
         viewHolder.date.setText(new SimpleDateFormat(date_format, Locale.US).format(new Date(obj.getDate())));
-        viewHolder.author.setText(ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUsername());
+//        viewHolder.author.setText(ActivityMain.getRC().getItem(MessagesAuthor.class, null, null).getUsername());
 
         }
 
