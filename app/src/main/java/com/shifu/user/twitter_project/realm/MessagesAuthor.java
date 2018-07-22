@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.twitter_project.realm;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -8,7 +8,7 @@ import io.realm.annotations.PrimaryKey;
 
 public class MessagesAuthor extends RealmObject {
 
-    static final String FIELD_ID = "uid";
+    public static final String FIELD_ID = "uid";
 
     @PrimaryKey
     private String uid;

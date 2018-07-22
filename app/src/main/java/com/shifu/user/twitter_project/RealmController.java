@@ -6,6 +6,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.shifu.user.twitter_project.json.JsonMsg;
+import com.shifu.user.twitter_project.json.JsonResponse;
+import com.shifu.user.twitter_project.realm.Messages;
+import com.shifu.user.twitter_project.realm.MessagesAuthor;
+import com.shifu.user.twitter_project.realm.MessagesUsers;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -18,7 +24,7 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 
-import static com.shifu.user.twitter_project.Messages.FIELD_ID;
+import static com.shifu.user.twitter_project.realm.Messages.FIELD_ID;
 
 import static com.shifu.user.twitter_project.FirebaseController.*;
 

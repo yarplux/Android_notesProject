@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.twitter_project.json;
 
 import java.util.Map;
 import retrofit2.Call;
@@ -42,10 +42,10 @@ public interface JsonApi {
     Call<JsonRefreshResponse> refresh(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonRefreshRequest request);
 
     @POST("setAccountInfo")
-    Call<JsonNewResponse> change(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonNewNameRequest request);
+    Call<JsonNewResponse> changeName(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonNewNameRequest request);
 
     @POST("setAccountInfo")
-    Call<JsonNewResponse> change(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonNewPassRequest request);
+    Call<JsonNewResponse> changeName(@Header("Content-Type") String header, @Query("key") String API_KEY, @Body JsonNewPassRequest request);
 
 
 

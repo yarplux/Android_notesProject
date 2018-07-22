@@ -1,11 +1,11 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.twitter_project.json;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class JsonResponse {
     private String name;
 
-    JsonResponse (String name) {
+    public JsonResponse (String name) {
         this.name = name;
     }
 

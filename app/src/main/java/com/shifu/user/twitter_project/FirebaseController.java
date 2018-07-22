@@ -7,6 +7,16 @@ import android.os.Handler;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.shifu.user.twitter_project.json.JsonApi;
+import com.shifu.user.twitter_project.json.JsonLoginRequest;
+import com.shifu.user.twitter_project.json.JsonLoginResponse;
+import com.shifu.user.twitter_project.json.JsonMsg;
+import com.shifu.user.twitter_project.json.JsonNewNameRequest;
+import com.shifu.user.twitter_project.json.JsonNewPassRequest;
+import com.shifu.user.twitter_project.json.JsonNewResponse;
+import com.shifu.user.twitter_project.json.JsonRefreshRequest;
+import com.shifu.user.twitter_project.json.JsonRefreshResponse;
+import com.shifu.user.twitter_project.json.JsonResponse;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -113,8 +123,8 @@ public class FirebaseController {
 
         JsonNewNameRequest jRequest = new JsonNewNameRequest(obj.getString("idToken"),mail, false);
 
-        Log.d(TAG, jsonApi.change("application/json", API_KEY, jRequest).request().toString());
-        jsonApi.change("application/json", API_KEY, jRequest)
+        Log.d(TAG, jsonApi.changeName("application/json", API_KEY, jRequest).request().toString());
+        jsonApi.changeName("application/json", API_KEY, jRequest)
                 .enqueue(new Callback<JsonNewResponse>() {
 
             @Override
@@ -128,7 +138,7 @@ public class FirebaseController {
                         Log.d(TAG, jObj.getString("error"));
                         Log.d(TAG, jObj.getJSONObject("error").getString("message"));
                         if (jObj.getJSONObject("error").getString("message").equals(ERROR_TOKEN_OLD)) {
-                            //refresh(TAG, obj, obj.getRefresh());
+                            refresh(TAG, obj, h);
                             h.sendMessage(Message.obtain(h,0,ERROR_TOKEN_OLD));
                         }
                     } catch (Exception e) {
@@ -157,9 +167,9 @@ public class FirebaseController {
         final String TAG = "FC.updatePass";
 
         JsonNewPassRequest jRequest = new JsonNewPassRequest(obj.getString("idToken"),obj.getString("password"), false);
-        Log.d(TAG, jsonApi.change("application/json", API_KEY, jRequest).request().toString());
+        Log.d(TAG, jsonApi.changeName("application/json", API_KEY, jRequest).request().toString());
 
-        jsonApi.change("application/json", API_KEY, jRequest)
+        jsonApi.changeName("application/json", API_KEY, jRequest)
                 .enqueue(new Callback<JsonNewResponse>() {
 
                     @Override
@@ -170,8 +180,13 @@ public class FirebaseController {
                             h.sendMessage(Message.obtain(h, 1, TAG));
                         } else {
                             try {
-                                ResponseError(TAG, response.errorBody().string(), h);
-                            } catch (Exception e) {
+                                JSONObject jObj = new JSONObject(response.errorBody().string().replaceAll("\\\\", ""));
+                                Log.d(TAG, jObj.getString("error"));
+                                Log.d(TAG, jObj.getJSONObject("error").getString("message"));
+                                if (jObj.getJSONObject("error").getString("message").equals(ERROR_TOKEN_OLD)) {
+                                    refresh(TAG, obj, h);
+                                    h.sendMessage(Message.obtain(h,0,ERROR_TOKEN_OLD));
+                                }                            } catch (Exception e) {
                                 Log.e(TAG, "Exception: "+e.toString());
                             }
                         }

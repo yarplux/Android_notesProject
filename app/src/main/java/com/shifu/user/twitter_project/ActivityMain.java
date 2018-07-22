@@ -12,6 +12,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.shifu.user.twitter_project.realm.Messages;
+import com.shifu.user.twitter_project.realm.MessagesAuthor;
+
 import java.util.Date;
 
 public class ActivityMain extends AppCompatActivity {
@@ -71,9 +74,13 @@ public class ActivityMain extends AppCompatActivity {
         ra =  new RealmRVAdapter(rc.getBase(Messages.class, "date"));
 
         final String TAG = "LOADED";
+
         if(rc.getSize(MessagesAuthor.class) >0) {
 
-            Log.d(TAG, "State: "+rc.getItem(MessagesAuthor.class, null, null).getUsername());
+            Log.d(TAG,
+                    "State: " + rc.getItem(MessagesAuthor.class, null, null).getUsername()
+                    + " Msgs in cashe: " + rc.getSize(Messages.class)
+                    + " Msgs in adapter: " + ra.getItemCount());
 
             MessagesAuthor user = rc.getItem(MessagesAuthor.class, null, null);
             Bundle obj = new Bundle();

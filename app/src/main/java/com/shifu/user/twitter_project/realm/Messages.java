@@ -1,11 +1,11 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.twitter_project.realm;
 
 import io.realm.annotations.PrimaryKey;
 import io.realm.RealmObject;
 
 public class Messages  extends RealmObject {
 
-    static final String FIELD_ID = "uuid_id";
+    public static final String FIELD_ID = "uuid_id";
 
     @PrimaryKey
     private String uuid_id;

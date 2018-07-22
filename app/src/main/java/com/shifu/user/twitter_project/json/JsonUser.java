@@ -1,11 +1,11 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.twitter_project.json;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class JsonUser {
     private String uid;
 
-    JsonUser (String name, String uid) {
+    public JsonUser (String name, String uid) {
         this.uid = name +":"+uid;
     }
 

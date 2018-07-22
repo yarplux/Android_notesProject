@@ -7,11 +7,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.shifu.user.twitter_project.realm.Messages;
+import com.shifu.user.twitter_project.realm.MessagesAuthor;
+
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmRecyclerViewAdapter;
@@ -65,7 +71,9 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Messages, RealmRVAd
 
     @Override
     public long getItemId(int index) {
-        return getItem(index).getDate();
+        //Log.d("RA.getItemId", getItem(index).toString());
+        //TODO "заплатка" (return должен быть long, a uuid string. По утверждению автора работает норм примерно до 1*10^6 записей)
+        return java.nio.ByteBuffer.wrap(getItem(index).getID().getBytes()).asLongBuffer().get();
     }
 
 }

@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.twitter_project.json;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -17,7 +17,7 @@ public class JsonMsg {
     @Expose
     private String uid;
 
-    JsonMsg(String text, Long date, String uid) {
+    public JsonMsg(String text, Long date, String uid) {
         this.text = text;
         this.date = date;
         this.uid = uid;

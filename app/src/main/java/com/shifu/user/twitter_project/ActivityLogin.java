@@ -19,6 +19,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.shifu.user.twitter_project.realm.MessagesAuthor;
+
 import java.util.HashMap;
 import java.util.Map;
 

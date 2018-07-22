@@ -13,6 +13,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.shifu.user.twitter_project.realm.Messages;
+
 import org.jetbrains.annotations.NotNull;
 
 import static android.app.Activity.RESULT_OK;
@@ -91,7 +93,9 @@ public class FragmentList extends Fragment {
 
     @Override
     public void onStart(){
-        Log.d("MyMark", "fragment onCreateView");
+        Log.d("MyMark", "fragment onStart");
+                        //+ " Msgs in adapter: " + ra.getItemCount());
+
         super.onStart();
 
         mRecyclerView.setLayoutManager(mLayoutManager);
