@@ -30,7 +30,7 @@
         android:id="@+id/recyclerView"
         android:name="com.shifu.user.project1.ItemFragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"

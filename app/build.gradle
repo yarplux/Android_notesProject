@@ -20,6 +20,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -48,6 +52,7 @@ dependencies {
     implementation 'com.google.api-client:google-api-client:1.23.0'
 
     implementation 'io.reactivex:rxjava:1.2.7'
+    implementation 'io.reactivex:rxandroid:1.2.1'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
