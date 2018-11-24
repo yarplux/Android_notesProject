@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project.json;
+package com.shifu.user.notes_project.json;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 

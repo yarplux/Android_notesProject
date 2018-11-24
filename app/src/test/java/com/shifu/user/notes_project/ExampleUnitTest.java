@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.notes_project;
 
 import org.junit.Test;
 

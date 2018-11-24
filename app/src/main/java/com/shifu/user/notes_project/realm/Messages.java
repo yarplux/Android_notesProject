@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project.realm;
+package com.shifu.user.notes_project.realm;
 
 import io.realm.annotations.PrimaryKey;
 import io.realm.RealmObject;

@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project.json;
+package com.shifu.user.notes_project.json;
 
 import java.util.Map;
 import retrofit2.Call;

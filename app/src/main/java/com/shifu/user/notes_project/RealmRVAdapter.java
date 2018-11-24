@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.notes_project;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -7,8 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.shifu.user.twitter_project.realm.Messages;
-import com.shifu.user.twitter_project.realm.MessagesAuthor;
+import com.shifu.user.notes_project.realm.Messages;
+import com.shifu.user.notes_project.realm.MessagesAuthor;
 
 import org.jetbrains.annotations.NotNull;
 

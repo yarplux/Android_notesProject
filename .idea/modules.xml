@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/Shifu_2_notesProject.iml" filepath="$PROJECT_DIR$/Shifu_2_notesProject.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/twitterproject.iml" filepath="$PROJECT_DIR$/twitterproject.iml" />
     </modules>
   </component>
 </project>

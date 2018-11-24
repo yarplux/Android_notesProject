@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.notes_project;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -7,8 +7,8 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 
-import static com.shifu.user.twitter_project.ActivityMain.ADD;
-import static com.shifu.user.twitter_project.ActivityMain.EDIT;
+import static com.shifu.user.notes_project.ActivityMain.ADD;
+import static com.shifu.user.notes_project.ActivityMain.EDIT;
 
 public class ActivityMsg extends AppCompatActivity {
 

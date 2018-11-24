@@ -1,5 +1,6 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.notes_project;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,10 +13,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import com.shifu.user.twitter_project.realm.Messages;
-import com.shifu.user.twitter_project.realm.MessagesAuthor;
+import com.shifu.user.notes_project.realm.Messages;
+import com.shifu.user.notes_project.realm.MessagesAuthor;
 
 import java.util.Date;
+
+import io.sentry.Sentry;
+import io.sentry.android.AndroidSentryClientFactory;
 
 public class ActivityMain extends AppCompatActivity {
 
@@ -45,6 +49,10 @@ public class ActivityMain extends AppCompatActivity {
         Log.d("MyMark", "activity onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Context ctx = this.getApplicationContext();
+        String sentryDsn = "https://46fefc45246e4141950905ca0b1e51c1@sentry.io/1323642";
+        Sentry.init(sentryDsn, new AndroidSentryClientFactory(ctx));
 
         h = new Handler(new Handler.Callback() {
             String TAG = "H.Main";

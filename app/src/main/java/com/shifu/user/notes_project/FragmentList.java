@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.notes_project;
 
 import android.content.Intent;
 import android.graphics.Canvas;
@@ -13,12 +13,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.shifu.user.twitter_project.realm.Messages;
+import com.shifu.user.notes_project.realm.Messages;
 
 import org.jetbrains.annotations.NotNull;
 
 import static android.app.Activity.RESULT_OK;
-import static com.shifu.user.twitter_project.ActivityMain.EDIT;
+import static com.shifu.user.notes_project.ActivityMain.EDIT;
 
 public class FragmentList extends Fragment {
 

@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.notes_project;
 
 import android.os.Bundle;
 import android.os.Message;
@@ -7,16 +7,16 @@ import android.os.Handler;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.shifu.user.twitter_project.json.JsonApi;
-import com.shifu.user.twitter_project.json.JsonLoginRequest;
-import com.shifu.user.twitter_project.json.JsonLoginResponse;
-import com.shifu.user.twitter_project.json.JsonMsg;
-import com.shifu.user.twitter_project.json.JsonNewNameRequest;
-import com.shifu.user.twitter_project.json.JsonNewPassRequest;
-import com.shifu.user.twitter_project.json.JsonNewResponse;
-import com.shifu.user.twitter_project.json.JsonRefreshRequest;
-import com.shifu.user.twitter_project.json.JsonRefreshResponse;
-import com.shifu.user.twitter_project.json.JsonResponse;
+import com.shifu.user.notes_project.json.JsonApi;
+import com.shifu.user.notes_project.json.JsonLoginRequest;
+import com.shifu.user.notes_project.json.JsonLoginResponse;
+import com.shifu.user.notes_project.json.JsonMsg;
+import com.shifu.user.notes_project.json.JsonNewNameRequest;
+import com.shifu.user.notes_project.json.JsonNewPassRequest;
+import com.shifu.user.notes_project.json.JsonNewResponse;
+import com.shifu.user.notes_project.json.JsonRefreshRequest;
+import com.shifu.user.notes_project.json.JsonRefreshResponse;
+import com.shifu.user.notes_project.json.JsonResponse;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;

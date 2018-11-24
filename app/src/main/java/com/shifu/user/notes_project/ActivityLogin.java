@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project;
+package com.shifu.user.notes_project;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -19,7 +19,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.shifu.user.twitter_project.realm.MessagesAuthor;
+import com.shifu.user.notes_project.realm.MessagesAuthor;
 
 import java.util.HashMap;
 import java.util.Map;

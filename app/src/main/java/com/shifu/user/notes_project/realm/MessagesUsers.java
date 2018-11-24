@@ -1,4 +1,4 @@
-package com.shifu.user.twitter_project.realm;
+package com.shifu.user.notes_project.realm;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
